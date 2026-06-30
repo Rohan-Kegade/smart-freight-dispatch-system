@@ -11,6 +11,7 @@ import {
   type PairWithDistance,
 } from '../services/matching';
 import { getDistanceAndDuration } from '../services/maps';
+import { explainMatches } from '../services/llm';
 
 const router = Router();
 
@@ -152,9 +153,33 @@ router.get(
     // ── 7. Score and rank ───────────────────────────────────────────────────
     const ranked = rankCandidates(pairsWithDistances, bookings, windowStart);
 
-    // ── 8. Shape response ───────────────────────────────────────────────────
-    // Step 7 (LLM explainer) will replace the placeholder explanation.
-    const matches = ranked.map(m => ({
+    // ── 8. Generate explanations (one API call for all ranked matches) ──────
+    const explanations = await explainMatches(
+      {
+        cargo_type:       transportRequest.cargo_type,
+        weight_kg:        transportRequest.weight_kg,
+        pickup_location:  transportRequest.pickup_location,
+        drop_location:    transportRequest.drop_location,
+        special_handling: transportRequest.special_handling,
+      },
+      ranked.map((m, i) => ({
+        rank:                    i + 1,
+        vehicle_number:          m.vehicle.vehicle_number,
+        vehicle_type:            m.vehicle.type.name,
+        capacity_kg:             m.vehicle.capacity_kg,
+        driver_name:             m.driver.name,
+        hours_worked_this_week:  m.driver.hours_worked_this_week,
+        score:                   m.score,
+        deadhead_km:             m.deadhead_km,
+        eta_to_pickup_minutes:   m.eta_to_pickup_minutes,
+        trip_km:                 m.trip_km,
+        cost_estimate:           m.cost_estimate,
+        overtime_risk_hours:     m.overtime_risk_hours,
+      })),
+    );
+
+    // ── 9. Shape response ───────────────────────────────────────────────────
+    const matches = ranked.map((m, i) => ({
       vehicle_id:            m.vehicle.id,
       vehicle_number:        m.vehicle.vehicle_number,
       driver_id:             m.driver.id,
@@ -165,7 +190,7 @@ router.get(
       trip_km:               m.trip_km,
       cost_estimate:         m.cost_estimate,
       overtime_risk_hours:   m.overtime_risk_hours,
-      explanation:           null, // populated by LLM in Step 7
+      explanation:           explanations[i] ?? null,
     }));
 
     res.json({ matches });
