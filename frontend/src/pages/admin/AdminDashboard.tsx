@@ -53,16 +53,16 @@ export default function AdminDashboard() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {loading ? [1,2,3,4].map(i => <Skeleton key={i} className="h-28" />) : stats.map(s => (
-          <Card key={s.title}>
-            <CardContent className="pt-6">
+        {loading ? [1,2,3,4].map(i => <Skeleton key={i} className="h-[88px]" />) : stats.map(s => (
+          <Card key={s.title} className="relative overflow-hidden">
+            <CardContent className="pt-5 pb-5">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">{s.title}</p>
-                  <p className="text-3xl font-bold mt-1">{s.value}</p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{s.title}</p>
+                  <p className="text-3xl font-bold mt-1.5 tracking-tight">{s.value}</p>
                   {s.total !== null && <p className="text-xs text-muted-foreground mt-0.5">of {s.total} total</p>}
                 </div>
-                <div className={`h-10 w-10 rounded-lg ${s.bg} flex items-center justify-center`}>
+                <div className={`h-10 w-10 rounded-xl ${s.bg} flex items-center justify-center shrink-0`}>
                   <s.icon className={`h-5 w-5 ${s.color}`} />
                 </div>
               </div>

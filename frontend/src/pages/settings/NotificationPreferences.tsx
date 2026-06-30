@@ -31,7 +31,7 @@ export default function NotificationPreferences() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-2xl mx-auto">
+    <div className="p-6 space-y-6 max-w-2xl">
       <PageHeader title="Notification preferences" description="Choose which events you want to be notified about." />
 
       <Card>

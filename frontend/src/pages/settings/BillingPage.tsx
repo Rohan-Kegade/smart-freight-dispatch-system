@@ -23,7 +23,7 @@ const INVOICES = [
 
 export default function BillingPage() {
   return (
-    <div className="p-6 space-y-6 max-w-2xl mx-auto">
+    <div className="p-6 space-y-6 max-w-2xl">
       <PageHeader title="Billing & subscription" description="Manage your plan, payment method, and invoices." />
 
       {/* Current plan */}

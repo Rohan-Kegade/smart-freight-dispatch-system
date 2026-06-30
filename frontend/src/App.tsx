@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import PublicLayout from '@/components/layout/PublicLayout';
 import AuthLayout from '@/components/layout/AuthLayout';
 import AppShell from '@/components/layout/AppShell';
+import SettingsLayout from '@/components/layout/SettingsLayout';
 
 // Public pages
 import LandingPage from '@/pages/public/LandingPage';
@@ -113,10 +114,13 @@ export default function App() {
         <Route path="admin/documents" element={<RequireAdmin><DocumentsPage /></RequireAdmin>} />
 
         {/* Settings */}
-        <Route path="settings/account" element={<AccountSettings />} />
-        <Route path="settings/org" element={<OrgSettings />} />
-        <Route path="settings/billing" element={<BillingPage />} />
-        <Route path="settings/notifications" element={<NotificationPreferences />} />
+        <Route path="settings" element={<SettingsLayout />}>
+          <Route index element={<Navigate to="account" replace />} />
+          <Route path="account" element={<AccountSettings />} />
+          <Route path="org" element={<OrgSettings />} />
+          <Route path="billing" element={<BillingPage />} />
+          <Route path="notifications" element={<NotificationPreferences />} />
+        </Route>
       </Route>
 
       {/* System pages */}

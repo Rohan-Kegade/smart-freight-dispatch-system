@@ -1,20 +1,25 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Eye, BookOpen } from 'lucide-react';
 import { bookingsApi } from '@/api';
 import type { Booking } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { EmptyState } from '@/components/shared/EmptyState';
-import { BookOpen } from 'lucide-react';
-import { formatDate, formatCurrency } from '@/lib/utils';
+import { formatDate, formatCurrency, cn } from '@/lib/utils';
 
 const PAGE_SIZE = 15;
+
+const STATUS_TABS = [
+  { value: 'all', label: 'All' },
+  { value: 'confirmed', label: 'Confirmed' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'cancelled', label: 'Cancelled' },
+] as const;
 
 export default function BookingsListPage() {
   const navigate = useNavigate();
@@ -31,6 +36,13 @@ export default function BookingsListPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const counts = useMemo(() => ({
+    all: bookings.length,
+    confirmed: bookings.filter(b => b.status === 'confirmed').length,
+    completed: bookings.filter(b => b.status === 'completed').length,
+    cancelled: bookings.filter(b => b.status === 'cancelled').length,
+  }), [bookings]);
+
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
     return bookings.filter(b => {
@@ -45,35 +57,48 @@ export default function BookingsListPage() {
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <div className="p-6 space-y-6 max-w-6xl mx-auto">
+    <div className="p-6 space-y-5 max-w-6xl mx-auto">
       <PageHeader
         title="Bookings"
         description="All dispatch bookings, past and active."
         actions={<Button onClick={() => navigate('/app/request/new')}>+ New request</Button>}
       />
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      {/* Status tabs + search */}
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+        <div className="flex items-center gap-1 bg-muted/60 rounded-lg p-1">
+          {STATUS_TABS.map(tab => (
+            <button
+              key={tab.value}
+              onClick={() => { setStatusFilter(tab.value); setPage(1); }}
+              className={cn(
+                'px-3 py-1.5 rounded-md text-sm font-medium transition-all',
+                statusFilter === tab.value
+                  ? 'bg-background shadow-sm text-foreground'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              {tab.label}
+              {!loading && (
+                <span className={cn(
+                  'ml-1.5 text-xs tabular-nums',
+                  statusFilter === tab.value ? 'text-muted-foreground' : 'text-muted-foreground/50',
+                )}>
+                  {counts[tab.value]}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+        <div className="relative flex-1 sm:max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
-            placeholder="Search by route, vehicle, driver, cargo…"
+            placeholder="Search route, vehicle, driver…"
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(1); }}
-            className="pl-9"
+            className="pl-8 h-9 text-sm"
           />
         </div>
-        <Select value={statusFilter} onValueChange={v => { setStatusFilter(v); setPage(1); }}>
-          <SelectTrigger className="w-full sm:w-40">
-            <SelectValue placeholder="All statuses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="confirmed">Confirmed</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="cancelled">Cancelled</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       {loading ? (
@@ -87,37 +112,46 @@ export default function BookingsListPage() {
         />
       ) : (
         <>
-          <div className="rounded-md border overflow-hidden">
+          <div className="rounded-xl border overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Route</TableHead>
-                  <TableHead>Vehicle</TableHead>
-                  <TableHead>Driver</TableHead>
-                  <TableHead>Start time</TableHead>
-                  <TableHead>Cost</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="w-16" />
+                <TableRow className="bg-muted/30 hover:bg-muted/30">
+                  <TableHead className="font-semibold">Route</TableHead>
+                  <TableHead className="font-semibold">Vehicle</TableHead>
+                  <TableHead className="font-semibold">Driver</TableHead>
+                  <TableHead className="font-semibold">Start time</TableHead>
+                  <TableHead className="font-semibold">Cost</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="w-10" />
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paged.map(b => (
-                  <TableRow key={b.id} className="cursor-pointer" onClick={() => navigate(`/app/bookings/${b.id}`)}>
+                  <TableRow
+                    key={b.id}
+                    className="cursor-pointer hover:bg-muted/30 transition-colors"
+                    onClick={() => navigate(`/app/bookings/${b.id}`)}
+                  >
                     <TableCell>
                       <div className="font-medium text-sm">{b.pickup_location}</div>
-                      <div className="text-xs text-muted-foreground">{b.drop_location}</div>
+                      <div className="text-xs text-muted-foreground mt-0.5">→ {b.drop_location}</div>
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm">{b.vehicle_number}</div>
+                      <div className="text-sm font-medium">{b.vehicle_number}</div>
                       <div className="text-xs text-muted-foreground">{b.vehicle_type}</div>
                     </TableCell>
                     <TableCell className="text-sm">{b.driver_name}</TableCell>
                     <TableCell className="text-sm text-muted-foreground whitespace-nowrap">{formatDate(b.start_time)}</TableCell>
-                    <TableCell className="text-sm">{b.cost_estimate != null ? formatCurrency(b.cost_estimate) : '—'}</TableCell>
+                    <TableCell className="text-sm font-medium tabular-nums">{b.cost_estimate != null ? formatCurrency(b.cost_estimate) : '—'}</TableCell>
                     <TableCell><StatusBadge status={b.status} /></TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" onClick={e => { e.stopPropagation(); navigate(`/app/bookings/${b.id}`); }}>
-                        <Eye className="h-4 w-4" />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={e => { e.stopPropagation(); navigate(`/app/bookings/${b.id}`); }}
+                      >
+                        <Eye className="h-3.5 w-3.5" />
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -127,17 +161,21 @@ export default function BookingsListPage() {
           </div>
 
           {/* Pagination */}
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <span>Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length}</span>
-            <div className="flex gap-1">
-              <Button variant="outline" size="icon" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <span className="text-xs">
+                Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length}
+              </span>
+              <div className="flex gap-1">
+                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                </Button>
+                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </>
       )}
     </div>

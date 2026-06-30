@@ -35,7 +35,7 @@ export default function OrgSettings() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-2xl mx-auto">
+    <div className="p-6 space-y-6 max-w-2xl">
       <PageHeader title="Organisation settings" description="Configure your company profile and regional preferences." />
 
       <Card>
