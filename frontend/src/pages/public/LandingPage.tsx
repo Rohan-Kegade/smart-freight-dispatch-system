@@ -279,7 +279,7 @@ export default function LandingPage() {
       </section>
 
       {/* ══ HOW IT WORKS ════════════════════════════════════════ */}
-      <section className="py-24 px-4 bg-background">
+      <section id="how-it-works" className="py-24 px-4 bg-background">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-xs font-bold text-primary/60 uppercase tracking-[0.15em] mb-3">Process</p>
@@ -317,7 +317,7 @@ export default function LandingPage() {
       </section>
 
       {/* ══ FEATURES ════════════════════════════════════════════ */}
-      <section className="py-24 px-4 bg-muted/20 border-t border-border">
+      <section id="features" className="py-24 px-4 bg-muted/20 border-t border-border">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-xs font-bold text-primary/60 uppercase tracking-[0.15em] mb-3">Capabilities</p>

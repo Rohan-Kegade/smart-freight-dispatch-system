@@ -74,7 +74,7 @@ export default function PublicLayout() {
     <div className="min-h-screen flex flex-col">
 
       {/* ══ NAVBAR ═══════════════════════════════════════════ */}
-      <header className="sticky top-0 z-40 bg-[#07091a]/92 backdrop-blur-md border-b border-white/[0.07]">
+      <header className="sticky top-0 z-40 bg-[#07091a] border-b border-white/[0.07]">
         <div className="max-w-6xl mx-auto px-6 h-[68px] flex items-center justify-between gap-8">
 
           {/* Brand */}
@@ -82,27 +82,17 @@ export default function PublicLayout() {
             <LogoMark size={36} />
             <div className="flex flex-col leading-none gap-0.5">
               <LogoType size="md" />
-              <span className="text-[9.5px] text-white/28 uppercase tracking-[0.16em] font-semibold">
+              <span className="text-[9.5px] text-white/40 uppercase tracking-[0.16em] font-semibold">
                 Intelligent Dispatch
               </span>
             </div>
           </Link>
 
-          {/* Nav links */}
+          {/* Nav links — use <a> for hash anchors so browser scroll works */}
           <nav className="hidden md:flex items-center gap-7 text-sm font-medium flex-1 justify-center">
-            {[
-              { label: 'Features',    href: '/#features' },
-              { label: 'How it works', href: '/#how-it-works' },
-              { label: 'Pricing',     href: '/pricing' },
-            ].map(({ label, href }) => (
-              <Link
-                key={label}
-                to={href}
-                className="text-white/48 hover:text-white transition-colors duration-150 whitespace-nowrap"
-              >
-                {label}
-              </Link>
-            ))}
+            <a href="/#features"    className="text-white/60 hover:text-white transition-colors duration-150 whitespace-nowrap">Features</a>
+            <a href="/#how-it-works" className="text-white/60 hover:text-white transition-colors duration-150 whitespace-nowrap">How it works</a>
+            <Link to="/pricing"      className="text-white/60 hover:text-white transition-colors duration-150 whitespace-nowrap">Pricing</Link>
           </nav>
 
           {/* CTAs */}
@@ -110,7 +100,7 @@ export default function PublicLayout() {
             <Button
               variant="ghost"
               asChild
-              className="text-white/55 hover:text-white hover:bg-white/[0.07] text-sm font-medium"
+              className="text-white/75 hover:text-white hover:bg-white/[0.08] text-sm font-medium"
             >
               <Link to="/login">Log in</Link>
             </Button>
