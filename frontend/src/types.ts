@@ -5,6 +5,11 @@ export interface User {
   role: 'admin' | 'dispatcher';
 }
 
+export interface LicenseType {
+  id: string;
+  name: string;
+}
+
 export interface VehicleType {
   id: string;
   name: string;
@@ -21,6 +26,8 @@ export interface Vehicle {
   maintenance_status: 'active' | 'maintenance' | 'retired';
   current_location: string;
   type: VehicleType;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Driver {
@@ -30,14 +37,16 @@ export interface Driver {
   hours_worked_this_week: number;
   on_leave_until: string | null;
   current_location: string;
-  license_type: { id: string; name: string };
+  license_type: LicenseType;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface FreightRequest {
   id: string;
   raw_text: string;
   cargo_type: string;
-  weight_kg: string | number; // pg decimal comes back as string
+  weight_kg: string | number;
   pickup_location: string;
   drop_location: string;
   deadline: string;
