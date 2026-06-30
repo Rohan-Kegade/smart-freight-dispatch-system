@@ -103,16 +103,21 @@ router.get(
       end_time:   new Date(r.end_time),
     }));
 
-    // ── 4. Filter candidates ────────────────────────────────────────────────
-    // Placeholder trip estimate (50km at 40km/h ≈ 1.25h); Step 5 replaces with real value.
-    const PLACEHOLDER_TRIP_HOURS = 1.25;
+    // ── 4. Fetch trip distance first — needed for the working-hours filter ─────
+    // One Maps call for pickup→drop, shared by every candidate.
+    const tripInfo = await getDistanceAndDuration(
+      transportRequest.pickup_location,
+      transportRequest.drop_location,
+    );
+
+    // ── 5. Filter candidates ────────────────────────────────────────────────
     const pairs = filterCandidates(
       vehicleRows as MatchVehicle[],
       drivers,
       bookings,
       transportRequest,
       windowStart,
-      PLACEHOLDER_TRIP_HOURS,
+      tripInfo.duration_hours, // real Maps duration replaces the Step 4 placeholder
     );
 
     if (pairs.length === 0) {
@@ -120,20 +125,16 @@ router.get(
       return;
     }
 
-    // ── 5. Fetch distances (deduplicated by location pair) ──────────────────
+    // ── 6. Fetch deadhead distances (deduplicated by driver location) ────────
     // Parallelized so each unique driver-location → pickup pair is one Maps call.
     const uniqueDriverLocations = [...new Set(pairs.map(p => p.driver.current_location))];
 
-    const [deadheadMap, tripInfo] = await Promise.all([
-      Promise.all(
-        uniqueDriverLocations.map(async loc => {
-          const result = await getDistanceAndDuration(loc, transportRequest.pickup_location);
-          return [loc, result] as const;
-        }),
-      ).then(entries => new Map(entries)),
-
-      getDistanceAndDuration(transportRequest.pickup_location, transportRequest.drop_location),
-    ]);
+    const deadheadMap = await Promise.all(
+      uniqueDriverLocations.map(async loc => {
+        const result = await getDistanceAndDuration(loc, transportRequest.pickup_location);
+        return [loc, result] as const;
+      }),
+    ).then(entries => new Map(entries));
 
     const pairsWithDistances: PairWithDistance[] = pairs.map(p => {
       const dh = deadheadMap.get(p.driver.current_location)!;
@@ -141,17 +142,17 @@ router.get(
         ...p,
         distance: {
           deadhead_km:           dh.distance_km,
-          eta_to_pickup_minutes: Math.round((dh.distance_km / 40) * 60),
+          eta_to_pickup_minutes: Math.round(dh.duration_hours * 60), // real Maps duration
           trip_km:               tripInfo.distance_km,
           trip_duration_hours:   tripInfo.duration_hours,
         },
       };
     });
 
-    // ── 6. Score and rank ───────────────────────────────────────────────────
+    // ── 7. Score and rank ───────────────────────────────────────────────────
     const ranked = rankCandidates(pairsWithDistances, bookings, windowStart);
 
-    // ── 7. Shape response ───────────────────────────────────────────────────
+    // ── 8. Shape response ───────────────────────────────────────────────────
     // Step 7 (LLM explainer) will replace the placeholder explanation.
     const matches = ranked.map(m => ({
       vehicle_id:            m.vehicle.id,
