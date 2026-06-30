@@ -8,8 +8,9 @@
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "lint": "eslint src --ext .ts",
     "test": "jest",
-    "migrate": "node-pg-migrate up",
-    "migrate:down": "node-pg-migrate down"
+    "migrate": "node --env-file=.env node_modules/node-pg-migrate/bin/node-pg-migrate up",
+    "migrate:down": "node --env-file=.env node_modules/node-pg-migrate/bin/node-pg-migrate down",
+    "seed": "ts-node src/db/seed.ts"
   },
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.438.0",
