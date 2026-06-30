@@ -90,7 +90,7 @@ async function seed(): Promise<void> {
         ('Dinesh Sharma', '+91-9876543213', $1, 5.00,  NULL,                     'Bhiwandi'),
         ('Vijay Pawar',   '+91-9876543214', $1, 0.00,  NOW() + INTERVAL '1 day', 'Pune'),
         ('Anil Desai',    '+91-9876543215', $1, 28.00, NULL,                     'Andheri, Mumbai')
-      ON CONFLICT DO NOTHING
+      ON CONFLICT (phone) DO NOTHING
       `,
       [licenseId['HMV'], licenseId['LMV'], licenseId['HGMV']],
     );
@@ -101,11 +101,11 @@ async function seed(): Promise<void> {
         ('ABC Textiles',       'Ravi Mehta',   '+91-2222-111111'),
         ('Mumbai Pharma Ltd',  'Priya Shah',   '+91-2222-222222'),
         ('National Steel Corp','Ajay Verma',   '+91-2222-333333')
-      ON CONFLICT DO NOTHING
+      ON CONFLICT (name) DO NOTHING
     `);
 
     // ── Users ────────────────────────────────────────────────────────────────
-    const passwordHash = await bcrypt.hash('password123', 12);
+    const passwordHash = await bcrypt.hash('password123', 10);
     await client.query(
       `
       INSERT INTO users (email, password_hash, name, role) VALUES

@@ -83,7 +83,7 @@ exports.up = (pgm) => {
   pgm.createTable('drivers', {
     id: { type: 'uuid', primaryKey: true, default: pgm.func('uuid_generate_v4()') },
     name: { type: 'varchar(255)', notNull: true },
-    phone: { type: 'varchar(20)', notNull: true },
+    phone: { type: 'varchar(20)', notNull: true, unique: true },
     license_type_id: {
       type: 'uuid',
       notNull: true,
@@ -104,7 +104,7 @@ exports.up = (pgm) => {
   // ── companies (clients placing requests) ──────────────────────────────────
   pgm.createTable('companies', {
     id: { type: 'uuid', primaryKey: true, default: pgm.func('uuid_generate_v4()') },
-    name: { type: 'varchar(255)', notNull: true },
+    name: { type: 'varchar(255)', notNull: true, unique: true },
     contact_person: { type: 'varchar(255)' },
     phone: { type: 'varchar(20)' },
     created_at: { type: 'timestamptz', notNull: true, default: pgm.func('now()') },
