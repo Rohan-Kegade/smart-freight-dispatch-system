@@ -59,3 +59,28 @@
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
+
+/* Truck animation for landing page dispatch preview */
+.truck-animate {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  animation: truck-drive 3.5s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+}
+@keyframes truck-drive {
+  0%   { left: 0%; }
+  100% { left: calc(100% - 28px); }
+}
+
+/* Cargo ticker scroll */
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: ticker-scroll 22s linear infinite;
+}
+.ticker-track:hover { animation-play-state: paused; }
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
