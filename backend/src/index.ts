@@ -5,6 +5,7 @@ import authRouter from './routes/auth';
 import fleetRouter from './routes/fleet';
 import matchesRouter from './routes/matches';
 import requestsRouter from './routes/requests';
+import bookingsRouter from './routes/bookings';
 
 const app = express();
 const PORT = process.env.PORT ?? 4000;
@@ -19,6 +20,7 @@ app.get('/health', (_req: Request, res: Response) => {
 app.use('/api/auth', authRouter);
 app.use('/api/fleet', fleetRouter);
 app.use('/api/requests', requestsRouter);
+app.use('/api/bookings', bookingsRouter);
 app.use('/api/matches', matchesRouter);
 
 // Centralized error handler — all routes throw to here instead of handling inline
