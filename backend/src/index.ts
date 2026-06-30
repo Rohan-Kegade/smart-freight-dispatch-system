@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express, { NextFunction, Request, Response } from 'express';
 import cors from 'cors';
 import authRouter from './routes/auth';
+import fleetRouter from './routes/fleet';
 
 const app = express();
 const PORT = process.env.PORT ?? 4000;
@@ -14,6 +15,7 @@ app.get('/health', (_req: Request, res: Response) => {
 });
 
 app.use('/api/auth', authRouter);
+app.use('/api/fleet', fleetRouter);
 
 // Centralized error handler — all routes throw to here instead of handling inline
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
