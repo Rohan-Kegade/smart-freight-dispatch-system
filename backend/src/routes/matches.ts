@@ -1,0 +1,201 @@
+import { Router } from 'express';
+import pool from '../db/pool';
+import asyncHandler from '../middleware/asyncHandler';
+import { authenticate } from '../middleware/auth';
+import {
+  filterCandidates,
+  rankCandidates,
+  type MatchVehicle,
+  type MatchDriver,
+  type MatchBooking,
+  type PairWithDistance,
+} from '../services/matching';
+import { getDistanceAndDuration } from '../services/maps';
+import { explainMatches } from '../services/llm';
+
+const router = Router();
+
+// GET /api/matches?requestId=<uuid>
+// Returns the top-3 ranked vehicle+driver combinations for a confirmed request.
+// Step 7 will add LLM-generated explanations; for now each match carries a
+// data-driven placeholder so the endpoint is fully usable end-to-end.
+router.get(
+  '/',
+  authenticate,
+  asyncHandler(async (req, res) => {
+    const { requestId } = req.query as { requestId?: string };
+    if (!requestId) {
+      res.status(400).json({ error: 'requestId query parameter is required' });
+      return;
+    }
+
+    // ── 1. Load the request ─────────────────────────────────────────────────
+    const { rows: reqRows } = await pool.query(
+      `SELECT id, cargo_type, weight_kg, pickup_location, drop_location,
+              deadline, special_handling, status
+       FROM requests WHERE id = $1`,
+      [requestId],
+    );
+    if (reqRows.length === 0) {
+      res.status(404).json({ error: 'Request not found' });
+      return;
+    }
+    const dbReq = reqRows[0];
+    if (dbReq.status !== 'confirmed') {
+      res.status(409).json({
+        error: `Request must be in 'confirmed' status before matching (current: ${dbReq.status})`,
+      });
+      return;
+    }
+
+    const transportRequest = {
+      id:               dbReq.id,
+      cargo_type:       dbReq.cargo_type,
+      weight_kg:        Number(dbReq.weight_kg),
+      pickup_location:  dbReq.pickup_location,
+      drop_location:    dbReq.drop_location,
+      deadline:         new Date(dbReq.deadline),
+      special_handling: dbReq.special_handling ?? [],
+    };
+
+    const windowStart = new Date();
+
+    // ── 2. Load fleet data ──────────────────────────────────────────────────
+    const { rows: vehicleRows } = await pool.query<MatchVehicle & { type: MatchVehicle['type'] }>(`
+      SELECT
+        v.id, v.vehicle_number, v.capacity_kg, v.maintenance_status, v.current_location,
+        json_build_object(
+          'id',                    vt.id,
+          'name',                  vt.name,
+          'compatible_cargo_types',vt.compatible_cargo_types,
+          'is_refrigerated',       vt.is_refrigerated,
+          'is_hazmat_certified',   vt.is_hazmat_certified,
+          'required_license_type', lt.name
+        ) AS type
+      FROM vehicles v
+      JOIN vehicle_types vt ON v.type_id = vt.id
+      JOIN license_types lt ON vt.required_license_type_id = lt.id
+    `);
+
+    const { rows: driverRows } = await pool.query(`
+      SELECT
+        d.id, d.name, d.phone, d.hours_worked_this_week, d.on_leave_until,
+        d.current_location, lt.name AS license_type
+      FROM drivers d
+      JOIN license_types lt ON d.license_type_id = lt.id
+      WHERE d.is_active = true
+    `);
+
+    const drivers: MatchDriver[] = driverRows.map(r => ({
+      ...r,
+      hours_worked_this_week: Number(r.hours_worked_this_week),
+      on_leave_until: r.on_leave_until ? new Date(r.on_leave_until) : null,
+    }));
+
+    // ── 3. Load active bookings for overlap detection ────────────────────────
+    const { rows: bookingRows } = await pool.query(`
+      SELECT vehicle_id, driver_id, start_time, end_time, status
+      FROM bookings
+      WHERE status IN ('proposed', 'confirmed') AND end_time > $1
+    `, [windowStart]);
+
+    const bookings: MatchBooking[] = bookingRows.map(r => ({
+      ...r,
+      start_time: new Date(r.start_time),
+      end_time:   new Date(r.end_time),
+    }));
+
+    // ── 4. Fetch trip distance first — needed for the working-hours filter ─────
+    // One Maps call for pickup→drop, shared by every candidate.
+    const tripInfo = await getDistanceAndDuration(
+      transportRequest.pickup_location,
+      transportRequest.drop_location,
+    );
+
+    // ── 5. Filter candidates ────────────────────────────────────────────────
+    const pairs = filterCandidates(
+      vehicleRows as MatchVehicle[],
+      drivers,
+      bookings,
+      transportRequest,
+      windowStart,
+      tripInfo.duration_hours, // real Maps duration replaces the Step 4 placeholder
+    );
+
+    if (pairs.length === 0) {
+      res.json({ matches: [] });
+      return;
+    }
+
+    // ── 6. Fetch deadhead distances (deduplicated by driver location) ────────
+    // Parallelized so each unique driver-location → pickup pair is one Maps call.
+    const uniqueDriverLocations = [...new Set(pairs.map(p => p.driver.current_location))];
+
+    const deadheadMap = await Promise.all(
+      uniqueDriverLocations.map(async loc => {
+        const result = await getDistanceAndDuration(loc, transportRequest.pickup_location);
+        return [loc, result] as const;
+      }),
+    ).then(entries => new Map(entries));
+
+    const pairsWithDistances: PairWithDistance[] = pairs.map(p => {
+      const dh = deadheadMap.get(p.driver.current_location)!;
+      return {
+        ...p,
+        distance: {
+          deadhead_km:           dh.distance_km,
+          eta_to_pickup_minutes: Math.round(dh.duration_hours * 60), // real Maps duration
+          trip_km:               tripInfo.distance_km,
+          trip_duration_hours:   tripInfo.duration_hours,
+        },
+      };
+    });
+
+    // ── 7. Score and rank ───────────────────────────────────────────────────
+    const ranked = rankCandidates(pairsWithDistances, bookings, windowStart);
+
+    // ── 8. Generate explanations (one API call for all ranked matches) ──────
+    const explanations = await explainMatches(
+      {
+        cargo_type:       transportRequest.cargo_type,
+        weight_kg:        transportRequest.weight_kg,
+        pickup_location:  transportRequest.pickup_location,
+        drop_location:    transportRequest.drop_location,
+        special_handling: transportRequest.special_handling,
+      },
+      ranked.map((m, i) => ({
+        rank:                    i + 1,
+        vehicle_number:          m.vehicle.vehicle_number,
+        vehicle_type:            m.vehicle.type.name,
+        capacity_kg:             m.vehicle.capacity_kg,
+        driver_name:             m.driver.name,
+        hours_worked_this_week:  m.driver.hours_worked_this_week,
+        score:                   m.score,
+        deadhead_km:             m.deadhead_km,
+        eta_to_pickup_minutes:   m.eta_to_pickup_minutes,
+        trip_km:                 m.trip_km,
+        cost_estimate:           m.cost_estimate,
+        overtime_risk_hours:     m.overtime_risk_hours,
+      })),
+    );
+
+    // ── 9. Shape response ───────────────────────────────────────────────────
+    const matches = ranked.map((m, i) => ({
+      vehicle_id:            m.vehicle.id,
+      vehicle_number:        m.vehicle.vehicle_number,
+      driver_id:             m.driver.id,
+      driver_name:           m.driver.name,
+      score:                 m.score,
+      deadhead_km:           m.deadhead_km,
+      eta_to_pickup_minutes: m.eta_to_pickup_minutes,
+      trip_km:               m.trip_km,
+      cost_estimate:         m.cost_estimate,
+      overtime_risk_hours:   m.overtime_risk_hours,
+      explanation:           explanations[i] ?? null,
+    }));
+
+    res.json({ matches });
+  }),
+);
+
+export default router;
