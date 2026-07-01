@@ -133,9 +133,13 @@ export default function BookingDetailPage() {
 
   if (!booking) return null;
 
-  const canManage = user?.role === 'fleet_manager' || user?.role === 'dispatcher';
-  const canProxy = user?.role === 'fleet_manager';
+  // System Admin has universal access — it can see and act on every control
+  // below, in addition to whatever its own role would normally allow.
+  const isSystemAdmin = user?.role === 'system_admin';
+  const canManage = user?.role === 'fleet_manager' || user?.role === 'dispatcher' || isSystemAdmin;
+  const canProxy = user?.role === 'fleet_manager' || isSystemAdmin;
   const isDriver = user?.role === 'driver';
+  const canHandshake = isDriver || isSystemAdmin;
   const canActOnTrip = isDriver || canProxy;
 
   return (
@@ -189,8 +193,8 @@ export default function BookingDetailPage() {
         </CardContent>
       </Card>
 
-      {/* Job Dispatch Handshake — driver only, while proposed */}
-      {isDriver && booking.status === 'proposed' && (
+      {/* Job Dispatch Handshake — driver (own trip) or System Admin (universal access) */}
+      {canHandshake && booking.status === 'proposed' && (
         <>
           <Separator />
           <div className="flex gap-3">

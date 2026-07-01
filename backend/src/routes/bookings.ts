@@ -313,7 +313,11 @@ router.patch(
       'SELECT driver_id, status FROM bookings WHERE id = $1',
       [req.params.id],
     );
-    if (rows.length === 0 || rows[0].driver_id !== req.user!.driverId) {
+    if (rows.length === 0) {
+      res.status(404).json({ error: 'Booking not found' });
+      return;
+    }
+    if (req.user!.role === 'driver' && rows[0].driver_id !== req.user!.driverId) {
       res.status(404).json({ error: 'Booking not found' });
       return;
     }
@@ -349,7 +353,12 @@ router.patch(
         'SELECT driver_id, status, request_id FROM bookings WHERE id = $1 FOR UPDATE',
         [req.params.id],
       );
-      if (rows.length === 0 || rows[0].driver_id !== req.user!.driverId) {
+      if (rows.length === 0) {
+        await client.query('ROLLBACK');
+        res.status(404).json({ error: 'Booking not found' });
+        return;
+      }
+      if (req.user!.role === 'driver' && rows[0].driver_id !== req.user!.driverId) {
         await client.query('ROLLBACK');
         res.status(404).json({ error: 'Booking not found' });
         return;

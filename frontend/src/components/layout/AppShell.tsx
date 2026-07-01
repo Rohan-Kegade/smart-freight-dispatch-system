@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   Bell, LogOut, Settings, ChevronLeft, ChevronRight, Sun, Moon,
-  LayoutDashboard, BookOpen, Sparkles, Truck, Users, Database, CalendarDays, FileClock, ShieldCheck, type LucideIcon,
+  LayoutDashboard, BookOpen, Sparkles, Truck, Users, Database, CalendarDays, FileClock, ShieldCheck, GaugeCircle, type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -33,7 +33,18 @@ const fleetManagerNav: NavItem[] = [
   { navKey: 'knowledgeBase', href: '/app/fleet/documents', end: true, icon: Database, colorKey: 'pink' },
 ];
 
+// System Admin has universal access — its nav is the full union of every
+// other role's pages (plus its own Users/Audit Logs), not a restricted subset.
 const systemAdminNav: NavItem[] = [
+  { navKey: 'overview', href: '/app/fleet/dashboard', end: true, icon: GaugeCircle, colorKey: 'blue' },
+  { navKey: 'dispatch', href: '/app/dashboard', end: true, icon: LayoutDashboard, colorKey: 'teal' },
+  { navKey: 'fleet', href: '/app/fleet/vehicles', icon: Truck, colorKey: 'orange' },
+  { navKey: 'drivers', href: '/app/fleet/drivers', icon: Users, colorKey: 'green' },
+  { navKey: 'bookings', href: '/app/bookings', icon: BookOpen, colorKey: 'purple' },
+  { navKey: 'calendar', href: '/app/fleet/calendar', end: true, icon: CalendarDays, colorKey: 'indigo' },
+  { navKey: 'leave', href: '/app/fleet/leave', end: true, icon: FileClock, colorKey: 'red' },
+  { navKey: 'knowledgeBase', href: '/app/fleet/documents', end: true, icon: Database, colorKey: 'pink' },
+  { navKey: 'assistant', href: '/app/assistant', end: true, icon: Sparkles, colorKey: 'teal' },
   { navKey: 'users', href: '/app/system/users', end: true, icon: ShieldCheck, colorKey: 'blue' },
   { navKey: 'auditLogs', href: '/app/system/audit-logs', end: true, icon: FileClock, colorKey: 'indigo' },
 ];
