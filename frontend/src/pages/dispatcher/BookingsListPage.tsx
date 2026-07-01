@@ -85,7 +85,7 @@ export default function BookingsListPage() {
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <div className="p-6 space-y-6 mx-auto" style={{ maxWidth: 1400 }}>
+    <div className="p-6 space-y-6 mx-auto" style={{ maxWidth: 1600 }}>
       {/* Status tabs + search */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center sm:justify-between">
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">

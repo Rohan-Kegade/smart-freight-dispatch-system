@@ -55,7 +55,7 @@ export default function LeaveManagementPage() {
   }
 
   return (
-    <div className="p-6 space-y-6 mx-auto" style={{ maxWidth: 1400 }}>
+    <div className="p-6 space-y-6 mx-auto" style={{ maxWidth: 1600 }}>
       <div className="flex items-center gap-1 bg-muted/60 rounded-lg p-1 w-fit">
         {TABS.map(t => (
           <button

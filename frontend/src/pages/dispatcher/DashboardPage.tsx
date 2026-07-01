@@ -45,7 +45,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div style={{ padding: 24, maxWidth: 1400, margin: '0 auto', fontFamily: body, color: C.text }}>
+    <div style={{ padding: 24, maxWidth: 1600, margin: '0 auto', fontFamily: body, color: C.text }}>
 
       {/* Stat cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 24 }}>

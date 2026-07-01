@@ -208,7 +208,7 @@ export default function VehiclesPage() {
   return (
     <div
       className="p-6 space-y-6 mx-auto"
-      style={{ maxWidth: 1400, fontFamily: body }}
+      style={{ maxWidth: 1600, fontFamily: body }}
     >
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center sm:justify-between">
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">

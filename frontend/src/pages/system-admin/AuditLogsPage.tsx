@@ -29,7 +29,7 @@ export default function AuditLogsPage() {
   const filtered = logs.filter(l => !q || [l.action, l.entity_type, l.actor_name, l.actor_email].some(s => s?.toLowerCase().includes(q)));
 
   return (
-    <div className="p-6 space-y-6 mx-auto" style={{ maxWidth: 1400 }}>
+    <div className="p-6 space-y-6 mx-auto" style={{ maxWidth: 1600 }}>
       <div className="relative max-w-xs">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
         <Input placeholder="Search action, entity, actor…" value={search} onChange={e => setSearch(e.target.value)} className="pl-8 h-9 text-sm" />

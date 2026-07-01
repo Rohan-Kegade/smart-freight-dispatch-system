@@ -119,7 +119,7 @@ export default function DriversPage() {
   }
 
   return (
-    <div className="p-6 space-y-6 mx-auto" style={{ maxWidth: 1400 }}>
+    <div className="p-6 space-y-6 mx-auto" style={{ maxWidth: 1600 }}>
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center sm:justify-between">
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
           <div className="flex items-center gap-1 bg-muted/60 rounded-lg p-1">

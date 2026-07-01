@@ -109,7 +109,7 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="p-6 space-y-6 mx-auto" style={{ maxWidth: 1400 }}>
+    <div className="p-6 space-y-6 mx-auto" style={{ maxWidth: 1600 }}>
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center sm:justify-between">
         <div className="relative flex-1 sm:max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
