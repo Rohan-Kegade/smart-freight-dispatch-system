@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Truck, Users, CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { roleHomePath } from '@/lib/roleHome';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,7 +24,7 @@ export default function OnboardingWizard() {
   function back() { setStep(s => Math.max(s - 1, 0)); }
 
   function finish() {
-    navigate(user?.role === 'admin' ? '/app/admin/dashboard' : '/app/dashboard');
+    navigate(roleHomePath(user?.role));
   }
 
   return (
@@ -95,8 +96,8 @@ export default function OnboardingWizard() {
             </CardHeader>
             <CardContent className="space-y-3">
               <Button className="w-full" onClick={finish}>Go to dashboard <ArrowRight className="h-4 w-4" /></Button>
-              {user?.role === 'admin' && (
-                <Button variant="outline" className="w-full" onClick={() => navigate('/app/admin/vehicles')}>Add your first vehicle</Button>
+              {user?.role === 'fleet_manager' && (
+                <Button variant="outline" className="w-full" onClick={() => navigate('/app/fleet/vehicles')}>Add your first vehicle</Button>
               )}
             </CardContent>
           </>

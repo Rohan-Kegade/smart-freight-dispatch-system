@@ -1,5 +1,5 @@
 import { apiFetch } from './client';
-import type { Booking } from '@/types';
+import type { Booking, TripMilestone } from '@/types';
 
 export const bookingsApi = {
   create: (payload: {
@@ -19,4 +19,14 @@ export const bookingsApi = {
 
   update: (id: string, status: 'cancelled' | 'completed') =>
     apiFetch<{ message: string }>('PATCH', `/bookings/${id}`, { status }),
+
+  accept: (id: string) => apiFetch<{ message: string }>('PATCH', `/bookings/${id}/accept`),
+
+  deny: (id: string) => apiFetch<{ message: string }>('PATCH', `/bookings/${id}/deny`),
+
+  updateMilestone: (id: string, milestone: TripMilestone) =>
+    apiFetch<{ message: string }>('PATCH', `/bookings/${id}/milestone`, { milestone }),
+
+  setEmergency: (id: string, payload: { is_emergency: boolean; note?: string }) =>
+    apiFetch<{ message: string }>('PATCH', `/bookings/${id}/emergency`, payload),
 };

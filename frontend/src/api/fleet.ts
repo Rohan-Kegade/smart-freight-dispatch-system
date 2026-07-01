@@ -33,6 +33,7 @@ export const fleetApi = {
     current_location: string;
     hours_worked_this_week: number;
     on_leave_until: string | null;
+    is_active: boolean;
   }>) => apiFetch<Driver>('PATCH', `/fleet/drivers/${id}`, data),
 
   getVehicleTypes: () => apiFetch<{ vehicle_types: VehicleType[] }>('GET', '/fleet/vehicle-types'),

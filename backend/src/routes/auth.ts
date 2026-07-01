@@ -3,6 +3,7 @@ import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import pool from '../db/pool';
 import asyncHandler from '../middleware/asyncHandler';
+import type { Role } from '../types/express';
 
 const router = Router();
 
@@ -21,8 +22,16 @@ router.post(
       email: string;
       password_hash: string;
       name: string;
-      role: 'admin' | 'dispatcher';
-    }>('SELECT id, email, password_hash, name, role FROM users WHERE email = $1', [email]);
+      role: Role;
+      is_active: boolean;
+      driver_id: string | null;
+    }>(
+      `SELECT u.id, u.email, u.password_hash, u.name, u.role, u.is_active, d.id AS driver_id
+       FROM users u
+       LEFT JOIN drivers d ON d.user_id = u.id
+       WHERE u.email = $1`,
+      [email],
+    );
 
     const user = rows[0];
     const valid = user !== undefined && (await bcrypt.compare(password, user.password_hash));
@@ -32,15 +41,22 @@ router.post(
       return;
     }
 
+    if (!user.is_active) {
+      res.status(403).json({ error: 'Account is disabled' });
+      return;
+    }
+
+    const driverId = user.role === 'driver' && user.driver_id ? user.driver_id : undefined;
+
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
+      { id: user.id, email: user.email, role: user.role, ...(driverId ? { driverId } : {}) },
       process.env.JWT_SECRET!,
       { expiresIn: '8h' },
     );
 
     res.json({
       token,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role },
+      user: { id: user.id, email: user.email, name: user.name, role: user.role, driverId },
     });
   }),
 );

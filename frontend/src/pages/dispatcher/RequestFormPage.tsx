@@ -1,15 +1,44 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, Sparkles, ArrowRight, RotateCcw, MapPin, Weight, Clock, Package } from 'lucide-react';
+import { Loader2, Sparkles, ArrowRight, RotateCcw, Pencil, MapPin, Weight, Clock, Package } from 'lucide-react';
 import { requestsApi } from '@/api';
 import { ApiError } from '@/api';
 import type { FreightRequest } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 import { formatDate, formatWeight, capitalise } from '@/lib/utils';
 import { cn } from '@/lib/utils';
+
+function toDatetimeLocal(iso: string): string {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+interface EditForm {
+  cargo_type: string;
+  weight_kg: string;
+  pickup_location: string;
+  drop_location: string;
+  deadline: string;
+  special_handling: string;
+}
+
+function toEditForm(r: FreightRequest): EditForm {
+  return {
+    cargo_type: r.cargo_type,
+    weight_kg: String(r.weight_kg),
+    pickup_location: r.pickup_location,
+    drop_location: r.drop_location,
+    deadline: toDatetimeLocal(r.deadline),
+    special_handling: r.special_handling.join(', '),
+  };
+}
 
 const EXAMPLES = [
   'Ship 2 tonnes of fabric from Bhiwandi warehouse to Andheri showroom by 5pm today.',
@@ -22,12 +51,17 @@ const MAX_CHARS = 600;
 
 export default function RequestFormPage() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [rawText, setRawText] = useState('');
   const [parsing, setParsing] = useState(false);
   const [findingMatches, setFindingMatches] = useState(false);
   const [error, setError] = useState('');
   const [clarification, setClarification] = useState('');
   const [parsed, setParsed] = useState<FreightRequest | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState<EditForm | null>(null);
+  const [editError, setEditError] = useState('');
+  const [saving, setSaving] = useState(false);
 
   async function handleParse() {
     if (!rawText.trim()) return;
@@ -50,7 +84,48 @@ export default function RequestFormPage() {
     }
   }
 
-  function reset() { setParsed(null); setRawText(''); setError(''); setClarification(''); }
+  function reset() { setParsed(null); setRawText(''); setError(''); setClarification(''); setEditing(false); }
+
+  function openEdit() {
+    if (!parsed) return;
+    setEditForm(toEditForm(parsed));
+    setEditError('');
+    setEditing(true);
+  }
+
+  function cancelEdit() { setEditing(false); setEditError(''); }
+
+  async function saveEdit() {
+    if (!parsed || !editForm) return;
+    setEditError('');
+
+    const weight = Number(editForm.weight_kg);
+    if (!editForm.cargo_type.trim()) return setEditError('Cargo type is required');
+    if (isNaN(weight) || weight <= 0) return setEditError('Weight must be a positive number');
+    if (!editForm.pickup_location.trim()) return setEditError('Pickup location is required');
+    if (!editForm.drop_location.trim()) return setEditError('Drop location is required');
+    const deadline = new Date(editForm.deadline);
+    if (isNaN(deadline.getTime())) return setEditError('Deadline must be a valid date/time');
+
+    setSaving(true);
+    try {
+      const { request } = await requestsApi.update(parsed.id, {
+        cargo_type: editForm.cargo_type.trim(),
+        weight_kg: weight,
+        pickup_location: editForm.pickup_location.trim(),
+        drop_location: editForm.drop_location.trim(),
+        deadline: deadline.toISOString(),
+        special_handling: editForm.special_handling.split(',').map(s => s.trim()).filter(Boolean),
+      });
+      setParsed(request);
+      setEditing(false);
+      toast({ title: 'Request updated', variant: 'success' });
+    } catch (err) {
+      setEditError(err instanceof ApiError ? err.message : 'Failed to save changes');
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-6">
@@ -128,81 +203,137 @@ export default function RequestFormPage() {
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div>
               <CardTitle className="text-base">Extracted details</CardTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">Review before finding matches</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {editing ? 'Correct any fields the AI got wrong' : 'Review before finding matches'}
+              </p>
             </div>
-            <Badge variant="success" className="gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block" />
-              Parsed
-            </Badge>
+            {!editing && (
+              <Badge variant="success" className="gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block" />
+                Parsed
+              </Badge>
+            )}
           </CardHeader>
           <CardContent className="space-y-5">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-start gap-2.5">
-                <div className="h-7 w-7 rounded-md bg-violet-50 flex items-center justify-center shrink-0 mt-0.5">
-                  <Package className="h-3.5 w-3.5 text-violet-600" />
+            {editError && (
+              <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">{editError}</div>
+            )}
+
+            {editing && editForm ? (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label>Cargo type</Label>
+                  <Input value={editForm.cargo_type} onChange={e => setEditForm(f => f && { ...f, cargo_type: e.target.value })} />
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Cargo type</p>
-                  <p className="text-sm font-semibold">{capitalise(parsed.cargo_type)}</p>
+                <div className="space-y-1.5">
+                  <Label>Weight (kg)</Label>
+                  <Input type="number" min="0" step="0.01" value={editForm.weight_kg} onChange={e => setEditForm(f => f && { ...f, weight_kg: e.target.value })} />
                 </div>
-              </div>
-              <div className="flex items-start gap-2.5">
-                <div className="h-7 w-7 rounded-md bg-amber-50 flex items-center justify-center shrink-0 mt-0.5">
-                  <Weight className="h-3.5 w-3.5 text-amber-600" />
+                <div className="space-y-1.5">
+                  <Label>Pickup location</Label>
+                  <Input value={editForm.pickup_location} onChange={e => setEditForm(f => f && { ...f, pickup_location: e.target.value })} />
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Weight</p>
-                  <p className="text-sm font-semibold">{formatWeight(parsed.weight_kg)}</p>
+                <div className="space-y-1.5">
+                  <Label>Drop location</Label>
+                  <Input value={editForm.drop_location} onChange={e => setEditForm(f => f && { ...f, drop_location: e.target.value })} />
                 </div>
-              </div>
-              <div className="flex items-start gap-2.5">
-                <div className="h-7 w-7 rounded-md bg-emerald-50 flex items-center justify-center shrink-0 mt-0.5">
-                  <MapPin className="h-3.5 w-3.5 text-emerald-600" />
+                <div className="space-y-1.5">
+                  <Label>Deadline</Label>
+                  <Input type="datetime-local" value={editForm.deadline} onChange={e => setEditForm(f => f && { ...f, deadline: e.target.value })} />
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Pickup</p>
-                  <p className="text-sm font-semibold">{parsed.pickup_location}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-2.5">
-                <div className="h-7 w-7 rounded-md bg-red-50 flex items-center justify-center shrink-0 mt-0.5">
-                  <MapPin className="h-3.5 w-3.5 text-red-500" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Drop</p>
-                  <p className="text-sm font-semibold">{parsed.drop_location}</p>
+                <div className="space-y-1.5">
+                  <Label>Special handling</Label>
+                  <Input
+                    placeholder="comma-separated, e.g. fragile, refrigerated"
+                    value={editForm.special_handling}
+                    onChange={e => setEditForm(f => f && { ...f, special_handling: e.target.value })}
+                  />
                 </div>
               </div>
-              <div className="flex items-start gap-2.5">
-                <div className="h-7 w-7 rounded-md bg-blue-50 flex items-center justify-center shrink-0 mt-0.5">
-                  <Clock className="h-3.5 w-3.5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Deadline</p>
-                  <p className="text-sm font-semibold">{formatDate(parsed.deadline)}</p>
-                </div>
-              </div>
-              {parsed.special_handling.length > 0 && (
-                <div className="col-span-2">
-                  <p className="text-xs text-muted-foreground mb-1.5">Special handling</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {parsed.special_handling.map(h => (
-                      <Badge key={h} variant="outline" className="text-xs">{capitalise(h)}</Badge>
-                    ))}
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-start gap-2.5">
+                  <div className="h-7 w-7 rounded-md bg-violet-50 flex items-center justify-center shrink-0 mt-0.5">
+                    <Package className="h-3.5 w-3.5 text-violet-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Cargo type</p>
+                    <p className="text-sm font-semibold">{capitalise(parsed.cargo_type)}</p>
                   </div>
                 </div>
-              )}
-            </div>
+                <div className="flex items-start gap-2.5">
+                  <div className="h-7 w-7 rounded-md bg-amber-50 flex items-center justify-center shrink-0 mt-0.5">
+                    <Weight className="h-3.5 w-3.5 text-amber-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Weight</p>
+                    <p className="text-sm font-semibold">{formatWeight(parsed.weight_kg)}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <div className="h-7 w-7 rounded-md bg-emerald-50 flex items-center justify-center shrink-0 mt-0.5">
+                    <MapPin className="h-3.5 w-3.5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Pickup</p>
+                    <p className="text-sm font-semibold">{parsed.pickup_location}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <div className="h-7 w-7 rounded-md bg-red-50 flex items-center justify-center shrink-0 mt-0.5">
+                    <MapPin className="h-3.5 w-3.5 text-red-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Drop</p>
+                    <p className="text-sm font-semibold">{parsed.drop_location}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <div className="h-7 w-7 rounded-md bg-blue-50 flex items-center justify-center shrink-0 mt-0.5">
+                    <Clock className="h-3.5 w-3.5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Deadline</p>
+                    <p className="text-sm font-semibold">{formatDate(parsed.deadline)}</p>
+                  </div>
+                </div>
+                {parsed.special_handling.length > 0 && (
+                  <div className="col-span-2">
+                    <p className="text-xs text-muted-foreground mb-1.5">Special handling</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {parsed.special_handling.map(h => (
+                        <Badge key={h} variant="outline" className="text-xs">{capitalise(h)}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
-            <div className="pt-3 border-t flex gap-2">
-              <Button variant="outline" onClick={reset} className="gap-2">
-                <RotateCcw className="h-3.5 w-3.5" /> Edit
-              </Button>
-              <Button className="flex-1 gap-2" size="default" onClick={() => { setFindingMatches(true); navigate(`/app/request/${parsed.id}/matches`); }} disabled={findingMatches}>
-                {findingMatches ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-                Find available vehicles
-              </Button>
-            </div>
+            {editing ? (
+              <div className="pt-3 border-t flex gap-2">
+                <Button variant="outline" onClick={cancelEdit} className="gap-2" disabled={saving}>
+                  Cancel
+                </Button>
+                <Button className="flex-1 gap-2" onClick={saveEdit} disabled={saving}>
+                  {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Save changes
+                </Button>
+              </div>
+            ) : (
+              <div className="pt-3 border-t flex gap-2">
+                <Button variant="outline" onClick={reset} className="gap-2" title="Discard and describe the shipment again">
+                  <RotateCcw className="h-3.5 w-3.5" /> Start over
+                </Button>
+                <Button variant="outline" onClick={openEdit} className="gap-2">
+                  <Pencil className="h-3.5 w-3.5" /> Edit details
+                </Button>
+                <Button className="flex-1 gap-2" size="default" onClick={() => { setFindingMatches(true); navigate(`/app/request/${parsed.id}/matches`); }} disabled={findingMatches}>
+                  {findingMatches ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+                  Find available vehicles
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

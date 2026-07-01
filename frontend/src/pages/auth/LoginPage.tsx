@@ -7,6 +7,8 @@ import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { authApi, ApiError } from '@/api';
 import { useTheme } from '@/context/ThemeContext';
+import { roleHomePath } from '@/lib/roleHome';
+import type { Role } from '@/types';
 
 const mono = "'IBM Plex Mono', monospace";
 const heading = "'IBM Plex Mono', monospace";
@@ -34,14 +36,21 @@ export default function LoginPage() {
     try {
       const { token, user } = await authApi.login(data.email, data.password);
       login(token, user);
-      navigate(user.role === 'admin' ? '/app/admin/dashboard' : '/app/dashboard');
+      navigate(user.role === 'driver' ? '/app/driver/trips' : roleHomePath(user.role));
     } catch (err) {
       setServerError(err instanceof ApiError ? err.message : 'Login failed. Please try again.');
     }
   }
 
-  function fillDemo(role: 'admin' | 'dispatcher') {
-    setValue('email', role === 'admin' ? 'admin@freight.co' : 'dispatcher@freight.co');
+  const DEMO_EMAILS: Record<Role, string> = {
+    system_admin: 'admin@freight.local',
+    fleet_manager: 'fleetmanager@freight.local',
+    dispatcher: 'dispatcher@freight.local',
+    driver: 'driver@freight.local',
+  };
+
+  function fillDemo(role: Role) {
+    setValue('email', DEMO_EMAILS[role]);
     setValue('password', 'password123');
   }
 
@@ -79,16 +88,21 @@ export default function LoginPage() {
       {/* Demo credentials */}
       <div style={{ background: C.surface2, border: `1px solid ${C.border}`, borderRadius: 9, padding: '12px 14px', marginBottom: 20 }}>
         <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.faint, marginBottom: 10 }}>Demo credentials</div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {(['dispatcher', 'admin'] as const).map(role => (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          {([
+            ['system_admin', 'System Admin'],
+            ['fleet_manager', 'Fleet Manager'],
+            ['dispatcher', 'Dispatcher'],
+            ['driver', 'Driver'],
+          ] as [Role, string][]).map(([role, label]) => (
             <button
               key={role}
               type="button"
               onClick={() => fillDemo(role)}
-              style={{ flex: 1, textAlign: 'left', background: C.surface, border: `1px solid ${C.border}`, borderRadius: 7, padding: '8px 10px', cursor: 'pointer', color: C.text, fontFamily: body }}
+              style={{ textAlign: 'left', background: C.surface, border: `1px solid ${C.border}`, borderRadius: 7, padding: '8px 10px', cursor: 'pointer', color: C.text, fontFamily: body }}
             >
-              <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 2 }}>{role === 'dispatcher' ? 'Dispatcher' : 'Admin'}</div>
-              <div style={{ fontFamily: mono, fontSize: 10.5, color: C.muted }}>{role}@freight.co</div>
+              <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 2 }}>{label}</div>
+              <div style={{ fontFamily: mono, fontSize: 10.5, color: C.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{DEMO_EMAILS[role]}</div>
             </button>
           ))}
         </div>

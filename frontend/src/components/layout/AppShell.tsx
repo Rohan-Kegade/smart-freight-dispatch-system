@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   Bell, LogOut, Settings, ChevronLeft, ChevronRight, Sun, Moon,
-  LayoutDashboard, BookOpen, Sparkles, Truck, Users, Database, type LucideIcon,
+  LayoutDashboard, BookOpen, Sparkles, Truck, Users, Database, CalendarDays, FileClock, ShieldCheck, type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -23,12 +23,19 @@ const dispatcherNav: NavItem[] = [
   { navKey: 'assistant', href: '/app/assistant', end: true, icon: Sparkles, colorKey: 'teal' },
 ];
 
-const adminNav: NavItem[] = [
-  { navKey: 'overview', href: '/app/admin/dashboard', end: true, icon: LayoutDashboard, colorKey: 'blue' },
-  { navKey: 'fleet', href: '/app/admin/vehicles', icon: Truck, colorKey: 'orange' },
-  { navKey: 'drivers', href: '/app/admin/drivers', icon: Users, colorKey: 'green' },
+const fleetManagerNav: NavItem[] = [
+  { navKey: 'overview', href: '/app/fleet/dashboard', end: true, icon: LayoutDashboard, colorKey: 'blue' },
+  { navKey: 'fleet', href: '/app/fleet/vehicles', icon: Truck, colorKey: 'orange' },
+  { navKey: 'drivers', href: '/app/fleet/drivers', icon: Users, colorKey: 'green' },
   { navKey: 'bookings', href: '/app/bookings', icon: BookOpen, colorKey: 'purple' },
-  { navKey: 'knowledgeBase', href: '/app/admin/documents', end: true, icon: Database, colorKey: 'pink' },
+  { navKey: 'calendar', href: '/app/fleet/calendar', end: true, icon: CalendarDays, colorKey: 'indigo' },
+  { navKey: 'leave', href: '/app/fleet/leave', end: true, icon: FileClock, colorKey: 'red' },
+  { navKey: 'knowledgeBase', href: '/app/fleet/documents', end: true, icon: Database, colorKey: 'pink' },
+];
+
+const systemAdminNav: NavItem[] = [
+  { navKey: 'users', href: '/app/system/users', end: true, icon: ShieldCheck, colorKey: 'blue' },
+  { navKey: 'auditLogs', href: '/app/system/audit-logs', end: true, icon: FileClock, colorKey: 'indigo' },
 ];
 
 function getHeader(pathname: string, dict: Dictionary): [string, string] {
@@ -84,9 +91,13 @@ export default function AppShell() {
   const [collapsed, setCollapsed] = useState(false);
   const [notifications] = useState(2);
 
-  const navItems = user?.role === 'admin' ? adminNav : dispatcherNav;
+  const navItems = user?.role === 'fleet_manager' ? fleetManagerNav
+    : user?.role === 'system_admin' ? systemAdminNav
+    : dispatcherNav;
   const initials = user?.name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2) ?? '??';
-  const roleLabel = user?.role === 'admin' ? dict.sidebar.adminRole : dict.sidebar.dispatcherRole;
+  const roleLabel = user?.role === 'fleet_manager' ? dict.sidebar.adminRole
+    : user?.role === 'system_admin' ? dict.sidebar.systemAdminRole
+    : dict.sidebar.dispatcherRole;
   const [pageTitle, pageSub] = getHeader(location.pathname, dict);
 
   function handleLogout() { logout(); navigate('/login'); }

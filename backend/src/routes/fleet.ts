@@ -36,7 +36,7 @@ function handlePgError(err: unknown, res: Response, hints: Record<string, string
 
 // ── Vehicles ──────────────────────────────────────────────────────────────────
 
-// GET /api/fleet/vehicles — Admin + Dispatcher (read-only)
+// GET /api/fleet/vehicles — any authenticated role (read-only)
 router.get(
   '/vehicles',
   authenticate,
@@ -62,11 +62,11 @@ router.get(
   }),
 );
 
-// POST /api/fleet/vehicles — Admin only
+// POST /api/fleet/vehicles — Fleet Manager only
 router.post(
   '/vehicles',
   authenticate,
-  requireRole('admin'),
+  requireRole('fleet_manager'),
   asyncHandler(async (req: Request, res: Response) => {
     const { vehicle_number, type_id, capacity_kg, current_location, maintenance_status = 'active' } =
       req.body as Record<string, unknown>;
@@ -104,11 +104,11 @@ router.post(
   }),
 );
 
-// PATCH /api/fleet/vehicles/:id — Admin only
+// PATCH /api/fleet/vehicles/:id — Fleet Manager only
 router.patch(
   '/vehicles/:id',
   authenticate,
-  requireRole('admin'),
+  requireRole('fleet_manager'),
   asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     const body = req.body as Record<string, unknown>;
@@ -146,6 +146,19 @@ router.patch(
       return;
     }
 
+    // Retiring removes the vehicle from the match pool going forward —
+    // block it while it has a live trip so a booking is never orphaned.
+    if (body.maintenance_status === 'retired') {
+      const { rows: liveBookings } = await pool.query(
+        "SELECT id FROM bookings WHERE vehicle_id = $1 AND status IN ('proposed', 'confirmed') LIMIT 1",
+        [id],
+      );
+      if (liveBookings.length > 0) {
+        res.status(409).json({ error: 'Cannot retire — vehicle has an active or upcoming trip' });
+        return;
+      }
+    }
+
     values.push(id);
     try {
       const { rows } = await pool.query(
@@ -165,7 +178,7 @@ router.patch(
 
 // ── Drivers ───────────────────────────────────────────────────────────────────
 
-// GET /api/fleet/drivers — Admin + Dispatcher (read-only)
+// GET /api/fleet/drivers — any authenticated role (read-only)
 router.get(
   '/drivers',
   authenticate,
@@ -173,7 +186,7 @@ router.get(
     const { rows } = await pool.query(`
       SELECT
         d.id, d.name, d.phone, d.hours_worked_this_week, d.on_leave_until,
-        d.current_location, d.created_at, d.updated_at,
+        d.current_location, d.user_id, d.is_active, d.created_at, d.updated_at,
         json_build_object(
           'id',   lt.id,
           'name', lt.name
@@ -186,11 +199,11 @@ router.get(
   }),
 );
 
-// POST /api/fleet/drivers — Admin only
+// POST /api/fleet/drivers — Fleet Manager only
 router.post(
   '/drivers',
   authenticate,
-  requireRole('admin'),
+  requireRole('fleet_manager'),
   asyncHandler(async (req: Request, res: Response) => {
     const {
       name,
@@ -231,11 +244,11 @@ router.post(
   }),
 );
 
-// PATCH /api/fleet/drivers/:id — Admin only
+// PATCH /api/fleet/drivers/:id — Fleet Manager only
 router.patch(
   '/drivers/:id',
   authenticate,
-  requireRole('admin'),
+  requireRole('fleet_manager'),
   asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     const body = req.body as Record<string, unknown>;
@@ -266,10 +279,31 @@ router.patch(
       setClauses.push(`on_leave_until = $${setClauses.length + 1}`);
       values.push(body.on_leave_until ?? null);
     }
+    if (body.is_active !== undefined) {
+      if (typeof body.is_active !== 'boolean') {
+        res.status(400).json({ error: 'is_active must be a boolean' });
+        return;
+      }
+      setClauses.push(`is_active = $${setClauses.length + 1}`);
+      values.push(body.is_active);
+    }
 
     if (setClauses.length === 0) {
       res.status(400).json({ error: 'No updatable fields provided' });
       return;
+    }
+
+    // Deactivating removes the driver from the match pool going forward —
+    // block it while they have a live trip so a booking is never orphaned.
+    if (body.is_active === false) {
+      const { rows: liveBookings } = await pool.query(
+        "SELECT id FROM bookings WHERE driver_id = $1 AND status IN ('proposed', 'confirmed') LIMIT 1",
+        [id],
+      );
+      if (liveBookings.length > 0) {
+        res.status(409).json({ error: 'Cannot deactivate — driver has an active or upcoming trip' });
+        return;
+      }
     }
 
     values.push(id);

@@ -1,8 +1,11 @@
+export type Role = 'system_admin' | 'fleet_manager' | 'dispatcher' | 'driver';
+
 export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'dispatcher';
+  role: Role;
+  driverId?: string;
 }
 
 export interface LicenseType {
@@ -38,6 +41,8 @@ export interface Driver {
   on_leave_until: string | null;
   current_location: string;
   license_type: LicenseType;
+  user_id: string | null;
+  is_active: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -70,6 +75,8 @@ export interface Match {
   explanation: string | null;
 }
 
+export type TripMilestone = 'at_pickup' | 'loaded' | 'in_transit' | 'delivered';
+
 export interface Booking {
   id: string;
   request_id: string;
@@ -77,7 +84,7 @@ export interface Booking {
   driver_id: string;
   start_time: string;
   end_time: string;
-  status: 'confirmed' | 'completed' | 'cancelled';
+  status: 'proposed' | 'confirmed' | 'rejected' | 'cancelled' | 'completed';
   score: number | null;
   deadhead_km: number | null;
   cost_estimate: number | null;
@@ -88,5 +95,37 @@ export interface Booking {
   cargo_type: string;
   pickup_location: string;
   drop_location: string;
+  created_at: string;
+  trip_milestone: TripMilestone | null;
+  is_emergency: boolean;
+  emergency_note: string | null;
+  emergency_marked_by: string | null;
+  emergency_marked_at: string | null;
+}
+
+export interface LeaveRequest {
+  id: string;
+  driver_id: string;
+  driver_name?: string;
+  start_date: string;
+  end_date: string;
+  reason: string | null;
+  status: 'pending' | 'approved' | 'denied';
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AuditLog {
+  id: string;
+  actor_user_id: string | null;
+  actor_name?: string;
+  actor_email?: string;
+  actor_role: string | null;
+  action: string;
+  entity_type: string;
+  entity_id: string | null;
+  metadata: Record<string, unknown> | null;
   created_at: string;
 }

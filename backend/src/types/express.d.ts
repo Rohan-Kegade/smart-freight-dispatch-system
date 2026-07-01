@@ -1,4 +1,4 @@
-export {};
+export type Role = 'system_admin' | 'fleet_manager' | 'dispatcher' | 'driver';
 
 declare global {
   namespace Express {
@@ -6,7 +6,8 @@ declare global {
       user?: {
         id: string;
         email: string;
-        role: 'admin' | 'dispatcher';
+        role: Role;
+        driverId?: string;
       };
     }
   }

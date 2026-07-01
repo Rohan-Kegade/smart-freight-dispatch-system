@@ -75,7 +75,7 @@ export const palettes: Record<ThemeName, ThemePalette> = {
   },
 };
 
-export type NavColorKey = 'blue' | 'purple' | 'green' | 'orange' | 'pink' | 'teal';
+export type NavColorKey = 'blue' | 'purple' | 'green' | 'orange' | 'pink' | 'teal' | 'indigo' | 'red';
 
 export interface NavColorSet {
   color: string;
@@ -91,6 +91,8 @@ export const navColors: Record<ThemeName, Record<NavColorKey, NavColorSet>> = {
     orange: { color: '#e0a35e', dim: 'rgba(224,163,94,0.14)', line: 'rgba(224,163,94,0.45)' },
     pink:   { color: '#f472b6', dim: 'rgba(244,114,182,0.14)', line: 'rgba(244,114,182,0.45)' },
     teal:   { color: '#2dd4bf', dim: 'rgba(45,212,191,0.14)', line: 'rgba(45,212,191,0.45)' },
+    indigo: { color: '#818cf8', dim: 'rgba(129,140,248,0.14)', line: 'rgba(129,140,248,0.45)' },
+    red:    { color: '#f87171', dim: 'rgba(248,113,113,0.14)', line: 'rgba(248,113,113,0.45)' },
   },
   light: {
     blue:   { color: '#2f6fe0', dim: 'rgba(47,111,224,0.10)', line: 'rgba(47,111,224,0.35)' },
@@ -99,5 +101,7 @@ export const navColors: Record<ThemeName, Record<NavColorKey, NavColorSet>> = {
     orange: { color: '#a3660d', dim: 'rgba(163,102,13,0.10)', line: 'rgba(163,102,13,0.35)' },
     pink:   { color: '#c0266f', dim: 'rgba(192,38,111,0.10)', line: 'rgba(192,38,111,0.35)' },
     teal:   { color: '#0f8f81', dim: 'rgba(15,143,129,0.10)', line: 'rgba(15,143,129,0.35)' },
+    indigo: { color: '#4f46e5', dim: 'rgba(79,70,229,0.10)', line: 'rgba(79,70,229,0.35)' },
+    red:    { color: '#dc2626', dim: 'rgba(220,38,38,0.10)', line: 'rgba(220,38,38,0.35)' },
   },
 };

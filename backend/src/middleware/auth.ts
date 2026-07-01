@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import type { Role } from '../types/express';
 
 export function authenticate(req: Request, res: Response, next: NextFunction): void {
   const header = req.headers.authorization;
@@ -15,9 +16,11 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
   }
 }
 
-export function requireRole(...roles: Array<'admin' | 'dispatcher'>) {
+// System Admin has universal access — it always passes regardless of which
+// roles are listed, so call sites never need to spell it out explicitly.
+export function requireRole(...roles: Role[]) {
   return (req: Request, res: Response, next: NextFunction): void => {
-    if (!req.user || !roles.includes(req.user.role)) {
+    if (!req.user || (req.user.role !== 'system_admin' && !roles.includes(req.user.role))) {
       res.status(403).json({ error: 'Insufficient permissions' });
       return;
     }

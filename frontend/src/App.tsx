@@ -1,10 +1,13 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { roleHomePath } from '@/lib/roleHome';
+import type { Role } from '@/types';
 
 // Layouts
 import PublicLayout from '@/components/layout/PublicLayout';
 import AuthLayout from '@/components/layout/AuthLayout';
 import AppShell from '@/components/layout/AppShell';
+import DriverShell from '@/components/layout/DriverShell';
 import SettingsLayout from '@/components/layout/SettingsLayout';
 
 // Public pages
@@ -28,12 +31,22 @@ import MatchResultsPage from '@/pages/dispatcher/MatchResultsPage';
 import BookingsListPage from '@/pages/dispatcher/BookingsListPage';
 import BookingDetailPage from '@/pages/dispatcher/BookingDetailPage';
 
-// Admin pages
-import AdminDashboard from '@/pages/admin/AdminDashboard';
-import VehiclesPage from '@/pages/admin/VehiclesPage';
-import DriversPage from '@/pages/admin/DriversPage';
-import TeamPage from '@/pages/admin/TeamPage';
-import DocumentsPage from '@/pages/admin/DocumentsPage';
+// Fleet Manager pages
+import FleetManagerDashboard from '@/pages/fleet-manager/AdminDashboard';
+import VehiclesPage from '@/pages/fleet-manager/VehiclesPage';
+import DriversPage from '@/pages/fleet-manager/DriversPage';
+import DocumentsPage from '@/pages/fleet-manager/DocumentsPage';
+import CalendarPage from '@/pages/fleet-manager/CalendarPage';
+import LeaveManagementPage from '@/pages/fleet-manager/LeaveManagementPage';
+
+// System Admin pages
+import UsersPage from '@/pages/system-admin/UsersPage';
+import AuditLogsPage from '@/pages/system-admin/AuditLogsPage';
+
+// Driver pages
+import TripLedgerPage from '@/pages/driver/TripLedgerPage';
+import TripDetailPage from '@/pages/driver/TripDetailPage';
+import LeavePage from '@/pages/driver/LeavePage';
 
 // Settings
 import AccountSettings from '@/pages/settings/AccountSettings';
@@ -58,16 +71,19 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
-function RequireAdmin({ children }: { children: React.ReactNode }) {
+// System Admin has universal access, so it always passes regardless of `allowed`.
+function RequireRole({ allowed, children }: { allowed: Role[]; children: React.ReactNode }) {
   const { user } = useAuth();
-  if (user?.role !== 'admin') return <Navigate to="/unauthorized" replace />;
+  if (!user || (user.role !== 'system_admin' && !allowed.includes(user.role))) {
+    return <Navigate to="/unauthorized" replace />;
+  }
   return <>{children}</>;
 }
 
 function AuthRedirect({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user } = useAuth();
   if (isAuthenticated) {
-    return <Navigate to={user?.role === 'admin' ? '/app/admin/dashboard' : '/app/dashboard'} replace />;
+    return <Navigate to={roleHomePath(user?.role)} replace />;
   }
   return <>{children}</>;
 }
@@ -93,8 +109,17 @@ export default function App() {
       {/* Onboarding (standalone) */}
       <Route path="/onboarding" element={<RequireAuth><OnboardingWizard /></RequireAuth>} />
 
-      {/* Authenticated app */}
-      <Route path="/app" element={<RequireAuth><AppShell /></RequireAuth>}>
+      {/* Authenticated app — System Admin, Fleet Manager, Dispatcher */}
+      <Route
+        path="/app"
+        element={
+          <RequireAuth>
+            <RequireRole allowed={['system_admin', 'fleet_manager', 'dispatcher']}>
+              <AppShell />
+            </RequireRole>
+          </RequireAuth>
+        }
+      >
         {/* Redirect /app to role-appropriate home */}
         <Route index element={<AppHomeRedirect />} />
 
@@ -107,12 +132,17 @@ export default function App() {
         <Route path="assistant" element={<AssistantPage />} />
         <Route path="notifications" element={<NotificationsPage />} />
 
-        {/* Admin routes */}
-        <Route path="admin/dashboard" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
-        <Route path="admin/vehicles" element={<RequireAdmin><VehiclesPage /></RequireAdmin>} />
-        <Route path="admin/drivers" element={<RequireAdmin><DriversPage /></RequireAdmin>} />
-        <Route path="admin/team" element={<RequireAdmin><TeamPage /></RequireAdmin>} />
-        <Route path="admin/documents" element={<RequireAdmin><DocumentsPage /></RequireAdmin>} />
+        {/* Fleet Manager routes */}
+        <Route path="fleet/dashboard" element={<RequireRole allowed={['fleet_manager']}><FleetManagerDashboard /></RequireRole>} />
+        <Route path="fleet/vehicles" element={<RequireRole allowed={['fleet_manager']}><VehiclesPage /></RequireRole>} />
+        <Route path="fleet/drivers" element={<RequireRole allowed={['fleet_manager']}><DriversPage /></RequireRole>} />
+        <Route path="fleet/documents" element={<RequireRole allowed={['fleet_manager']}><DocumentsPage /></RequireRole>} />
+        <Route path="fleet/calendar" element={<RequireRole allowed={['fleet_manager']}><CalendarPage /></RequireRole>} />
+        <Route path="fleet/leave" element={<RequireRole allowed={['fleet_manager']}><LeaveManagementPage /></RequireRole>} />
+
+        {/* System Admin routes */}
+        <Route path="system/users" element={<RequireRole allowed={['system_admin']}><UsersPage /></RequireRole>} />
+        <Route path="system/audit-logs" element={<RequireRole allowed={['system_admin']}><AuditLogsPage /></RequireRole>} />
 
         {/* Settings */}
         <Route path="settings" element={<SettingsLayout />}>
@@ -125,6 +155,23 @@ export default function App() {
         </Route>
       </Route>
 
+      {/* Authenticated app — Driver (separate mobile-shaped shell) */}
+      <Route
+        path="/app/driver"
+        element={
+          <RequireAuth>
+            <RequireRole allowed={['driver']}>
+              <DriverShell />
+            </RequireRole>
+          </RequireAuth>
+        }
+      >
+        <Route index element={<Navigate to="trips" replace />} />
+        <Route path="trips" element={<TripLedgerPage />} />
+        <Route path="trips/:id" element={<TripDetailPage />} />
+        <Route path="leave" element={<LeavePage />} />
+      </Route>
+
       {/* System pages */}
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
       <Route path="/error" element={<ServerErrorPage />} />
@@ -135,5 +182,5 @@ export default function App() {
 
 function AppHomeRedirect() {
   const { user } = useAuth();
-  return <Navigate to={user?.role === 'admin' ? '/app/admin/dashboard' : '/app/dashboard'} replace />;
+  return <Navigate to={roleHomePath(user?.role)} replace />;
 }

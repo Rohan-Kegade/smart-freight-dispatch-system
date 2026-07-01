@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { bookingsApi, fleetApi } from '@/api';
 import type { Booking, Vehicle, Driver } from '@/types';
 import { StatusBadge } from '@/components/shared/StatusBadge';
-import { Button } from '@/components/ui/button';
 import { formatDate, formatCurrency } from '@/lib/utils';
 import { useTheme } from '@/context/ThemeContext';
 
@@ -47,13 +46,6 @@ export default function DashboardPage() {
 
   return (
     <div style={{ padding: 24, maxWidth: 1400, margin: '0 auto', fontFamily: body, color: C.text }}>
-
-      {/* Actions */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', marginBottom: 24 }}>
-        <Button onClick={() => navigate('/app/request/new')} style={{ background: C.accent, color: C.accentText, fontWeight: 600 }}>
-          + New request
-        </Button>
-      </div>
 
       {/* Stat cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 24 }}>

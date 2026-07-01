@@ -109,12 +109,20 @@ async function seed(): Promise<void> {
     await client.query(
       `
       INSERT INTO users (email, password_hash, name, role) VALUES
-        ('admin@freight.local',      $1, 'Fleet Admin',  'admin'),
-        ('dispatcher@freight.local', $1, 'Dispatcher 1', 'dispatcher')
+        ('admin@freight.local',        $1, 'System Admin',  'system_admin'),
+        ('fleetmanager@freight.local', $1, 'Fleet Manager', 'fleet_manager'),
+        ('dispatcher@freight.local',   $1, 'Dispatcher 1',  'dispatcher'),
+        ('driver@freight.local',       $1, 'Ramesh Kumar',  'driver')
       ON CONFLICT (email) DO NOTHING
       `,
       [passwordHash],
     );
+
+    // Link the seeded driver login to Ramesh Kumar's existing roster row.
+    await client.query(`
+      UPDATE drivers SET user_id = (SELECT id FROM users WHERE email = 'driver@freight.local')
+      WHERE phone = '+91-9876543210' AND user_id IS NULL
+    `);
 
     await client.query('COMMIT');
     console.log('Seed complete.');

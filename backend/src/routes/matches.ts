@@ -83,6 +83,7 @@ router.get(
         d.current_location, lt.name AS license_type
       FROM drivers d
       JOIN license_types lt ON d.license_type_id = lt.id
+      WHERE d.is_active = true
     `);
 
     const drivers: MatchDriver[] = driverRows.map(r => ({
@@ -95,7 +96,7 @@ router.get(
     const { rows: bookingRows } = await pool.query(`
       SELECT vehicle_id, driver_id, start_time, end_time, status
       FROM bookings
-      WHERE status = 'confirmed' AND end_time > $1
+      WHERE status IN ('proposed', 'confirmed') AND end_time > $1
     `, [windowStart]);
 
     const bookings: MatchBooking[] = bookingRows.map(r => ({

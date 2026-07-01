@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Plus, Search, Pencil } from 'lucide-react';
+import { Plus, Search, Pencil, UserX, UserCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { fleetApi } from '@/api';
 import { ApiError } from '@/api';
@@ -59,11 +59,24 @@ export default function DriversPage() {
     const q = search.toLowerCase();
     return drivers.filter(d => {
       const onLeave = !!d.on_leave_until;
-      const matchLeave = leaveFilter === 'all' || (leaveFilter === 'active' && !onLeave) || (leaveFilter === 'leave' && onLeave);
+      const matchLeave = leaveFilter === 'all'
+        || (leaveFilter === 'available' && d.is_active && !onLeave)
+        || (leaveFilter === 'leave' && d.is_active && onLeave)
+        || (leaveFilter === 'inactive' && !d.is_active);
       const matchSearch = !q || [d.name, d.phone, d.current_location].some(s => s?.toLowerCase().includes(q));
       return matchLeave && matchSearch;
     });
   }, [drivers, search, leaveFilter]);
+
+  async function toggleActive(d: Driver) {
+    try {
+      await fleetApi.updateDriver(d.id, { is_active: !d.is_active });
+      setDrivers(prev => prev.map(x => x.id === d.id ? { ...x, is_active: !x.is_active } : x));
+      toast({ title: d.is_active ? 'Driver deactivated' : 'Driver reactivated', variant: 'success' });
+    } catch (err) {
+      toast({ title: 'Error', description: err instanceof ApiError ? err.message : 'Failed to update driver.', variant: 'destructive' });
+    }
+  }
 
   function openAdd() { setEditing(null); setForm(emptyForm); setFormError(''); setDialogOpen(true); }
   function openEdit(d: Driver) {
@@ -110,7 +123,7 @@ export default function DriversPage() {
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center sm:justify-between">
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
           <div className="flex items-center gap-1 bg-muted/60 rounded-lg p-1">
-            {[{ value: 'all', label: 'All' }, { value: 'active', label: 'Active' }, { value: 'leave', label: 'On leave' }].map(tab => (
+            {[{ value: 'all', label: 'All' }, { value: 'available', label: 'Available' }, { value: 'leave', label: 'On leave' }, { value: 'inactive', label: 'Inactive' }].map(tab => (
               <button
                 key={tab.value}
                 onClick={() => setLeaveFilter(tab.value)}
@@ -148,27 +161,54 @@ export default function DriversPage() {
                 <TableHead className="font-semibold text-foreground">Location</TableHead>
                 <TableHead className="font-semibold text-foreground">Hours this week</TableHead>
                 <TableHead className="font-semibold text-foreground">Status</TableHead>
-                <TableHead className="w-16" />
+                <TableHead className="font-semibold text-foreground">Edit</TableHead>
+                <TableHead className="font-semibold text-foreground">Activate/Deactivate</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.map(d => (
-                <TableRow key={d.id}>
+                <TableRow key={d.id} className={!d.is_active ? 'opacity-60' : undefined}>
                   <TableCell className="font-medium">{d.name}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">{d.phone}</TableCell>
                   <TableCell className="text-sm">{d.license_type?.name ?? '—'}</TableCell>
                   <TableCell className="text-sm">{d.current_location}</TableCell>
                   <TableCell className="text-sm">{d.hours_worked_this_week}h</TableCell>
                   <TableCell>
-                    {d.on_leave_until ? (
+                    {!d.is_active ? (
+                      <Badge variant="secondary">Deactivated</Badge>
+                    ) : d.on_leave_until ? (
                       <Badge variant="warning">On leave</Badge>
                     ) : (
                       <Badge variant="success">Available</Badge>
                     )}
                   </TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(d)}><Pencil className="h-4 w-4" /></Button>
-                  </TableCell>
+                  {/* Edit Column */}
+<TableCell>
+  <Button
+    variant="ghost"
+    size="icon"
+    onClick={() => openEdit(d)}
+    title="Edit driver"
+  >
+    <Pencil className="h-4 w-4" />
+  </Button>
+</TableCell>
+
+{/* Activate / Deactivate Column */}
+<TableCell>
+  <Button
+    variant="ghost"
+    size="icon"
+    title={d.is_active ? "Deactivate driver" : "Reactivate driver"}
+    onClick={() => toggleActive(d)}
+  >
+    {d.is_active ? (
+      <UserX className="h-4 w-4 text-destructive" />
+    ) : (
+      <UserCheck className="h-4 w-4 text-emerald-600" />
+    )}
+  </Button>
+</TableCell>
                 </TableRow>
               ))}
             </TableBody>
