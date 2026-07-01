@@ -1,97 +1,107 @@
 import { useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
-import {
-  LayoutDashboard, Truck, Users, BookOpen, PlusCircle, MessageSquare,
-  ChevronLeft, ChevronRight, Bell, LogOut, FileText,
-  UserCircle, Settings, PanelLeft,
-} from 'lucide-react';
+import { Bell, LogOut, UserCircle, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
 
-interface NavItem { label: string; href: string; icon: React.ElementType; end?: boolean; }
+/* ─── Design tokens ─────────────────────────────────────────── */
+const C = {
+  bg: '#090d13',
+  surface: '#11171f',
+  surface2: '#18212c',
+  surface3: '#232f3c',
+  border: 'rgba(255,255,255,.08)',
+  text: '#eaf0f6',
+  muted: '#8a97a6',
+  faint: '#5c6875',
+  accent: '#5aa2f0',
+  accentDim: 'rgba(90,162,240,0.14)',
+  accentLine: 'rgba(90,162,240,0.45)',
+};
+
+const mono = "'IBM Plex Mono', monospace";
+const heading = "'Space Grotesk', sans-serif";
+const body = "'IBM Plex Sans', system-ui, sans-serif";
+
+/* ─── Nav configuration ──────────────────────────────────────── */
+interface NavItem { label: string; href: string; end?: boolean; }
 
 const dispatcherNav: NavItem[] = [
-  { label: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard, end: true },
-  { label: 'New Request', href: '/app/request/new', icon: PlusCircle, end: true },
-  { label: 'Bookings', href: '/app/bookings', icon: BookOpen },
-  { label: 'AI Assistant', href: '/app/assistant', icon: MessageSquare, end: true },
+  { label: 'Dispatch', href: '/app/dashboard', end: true },
+  { label: 'Bookings', href: '/app/bookings' },
+  { label: 'Assistant', href: '/app/assistant', end: true },
 ];
 
 const adminNav: NavItem[] = [
-  { label: 'Dashboard', href: '/app/admin/dashboard', icon: LayoutDashboard, end: true },
-  { label: 'Vehicles', href: '/app/admin/vehicles', icon: Truck },
-  { label: 'Drivers', href: '/app/admin/drivers', icon: Users },
-  { label: 'Bookings', href: '/app/bookings', icon: BookOpen },
-  { label: 'Team', href: '/app/admin/team', icon: UserCircle, end: true },
-  { label: 'Documents', href: '/app/admin/documents', icon: FileText, end: true },
+  { label: 'Overview', href: '/app/admin/dashboard', end: true },
+  { label: 'Fleet', href: '/app/admin/vehicles' },
+  { label: 'Drivers', href: '/app/admin/drivers' },
+  { label: 'Bookings', href: '/app/bookings' },
+  { label: 'Knowledge base', href: '/app/admin/documents', end: true },
 ];
 
-const PAGE_TITLES: Record<string, string> = {
-  '/app/dashboard': 'Dashboard',
-  '/app/request/new': 'New Request',
-  '/app/bookings': 'Bookings',
-  '/app/assistant': 'AI Assistant',
-  '/app/notifications': 'Notifications',
-  '/app/admin/dashboard': 'Dashboard',
-  '/app/admin/vehicles': 'Vehicles',
-  '/app/admin/drivers': 'Drivers',
-  '/app/admin/team': 'Team',
-  '/app/admin/documents': 'Documents',
-  '/app/settings/account': 'Account',
-  '/app/settings/org': 'Organisation',
-  '/app/settings/billing': 'Billing',
-  '/app/settings/notifications': 'Notifications',
+const PAGE_TITLES: Record<string, [string, string]> = {
+  '/app/dashboard':         ['Dispatch', 'Capture a request and confirm the best match'],
+  '/app/request/new':       ['New Request', 'Describe a shipment in plain language'],
+  '/app/bookings':          ['Bookings', 'All scheduled and ad-hoc jobs'],
+  '/app/assistant':         ['Knowledge Assistant', 'Grounded answers from your policy documents'],
+  '/app/admin/dashboard':   ['Overview', 'Fleet at a glance'],
+  '/app/admin/vehicles':    ['Fleet', 'Vehicles — the source of truth'],
+  '/app/admin/drivers':     ['Drivers', 'Roster, licences and working hours'],
+  '/app/admin/team':        ['Team', 'Workspace members and roles'],
+  '/app/admin/documents':   ['Knowledge Base', 'Documents powering the assistant'],
+  '/app/settings/account':  ['Account', 'Your profile and preferences'],
+  '/app/settings/org':      ['Organisation', 'Workspace settings'],
+  '/app/settings/billing':  ['Billing', 'Plan and payment'],
+  '/app/notifications':     ['Notifications', ''],
 };
 
-function getPageTitle(pathname: string) {
-  if (pathname.startsWith('/app/bookings/')) return 'Booking detail';
-  if (pathname.startsWith('/app/request/') && pathname.includes('/matches')) return 'Match results';
-  return PAGE_TITLES[pathname] ?? '';
+function getHeader(pathname: string): [string, string] {
+  if (pathname.startsWith('/app/bookings/')) return ['Booking detail', ''];
+  if (pathname.includes('/matches')) return ['Match results', 'Ranked vehicle + driver pairs'];
+  return PAGE_TITLES[pathname] ?? ['', ''];
 }
 
+/* ─── Sidebar link ───────────────────────────────────────────── */
 function SidebarLink({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
   return (
     <NavLink
       to={item.href}
       end={item.end}
-      className={({ isActive }) =>
-        cn(
-          'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150',
-          isActive
-            ? 'bg-primary text-primary-foreground shadow-sm'
-            : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground',
-          collapsed && 'justify-center px-2',
-        )
-      }
+      style={({ isActive }) => ({
+        display: 'flex',
+        alignItems: 'center',
+        gap: 11,
+        padding: collapsed ? '10px 0' : '10px 12px',
+        borderRadius: 9,
+        fontSize: 14,
+        border: `1px solid ${isActive ? C.accentLine : 'transparent'}`,
+        background: isActive ? C.accentDim : 'transparent',
+        color: isActive ? C.accent : C.muted,
+        fontWeight: isActive ? 500 : 400,
+        textDecoration: 'none',
+        fontFamily: body,
+        transition: 'all .15s',
+        width: '100%',
+        justifyContent: collapsed ? 'center' : 'flex-start',
+        cursor: 'pointer',
+      })}
       title={collapsed ? item.label : undefined}
     >
-      <item.icon className="h-[18px] w-[18px] shrink-0" />
-      {!collapsed && <span>{item.label}</span>}
+      {({ isActive }) => (
+        <>
+          <span style={{ width: 7, height: 7, borderRadius: '50%', background: isActive ? C.accent : C.faint, flexShrink: 0 }} />
+          {!collapsed && <span>{item.label}</span>}
+        </>
+      )}
     </NavLink>
   );
 }
 
-function NavSection({ label, items, collapsed }: { label: string; items: NavItem[]; collapsed: boolean }) {
-  return (
-    <div>
-      {!collapsed && (
-        <p className="px-3 mb-1.5 text-[10px] font-semibold tracking-widest text-sidebar-foreground/30 uppercase">
-          {label}
-        </p>
-      )}
-      <div className="space-y-0.5">
-        {items.map(item => <SidebarLink key={item.href} item={item} collapsed={collapsed} />)}
-      </div>
-    </div>
-  );
-}
-
+/* ─── Component ─────────────────────────────────────────────── */
 export default function AppShell() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -101,79 +111,85 @@ export default function AppShell() {
 
   const navItems = user?.role === 'admin' ? adminNav : dispatcherNav;
   const initials = user?.name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2) ?? '??';
-  const pageTitle = getPageTitle(location.pathname);
-  const isOnSettings = location.pathname.startsWith('/app/settings');
+  const roleLabel = user?.role === 'admin' ? 'Fleet Admin' : 'Dispatcher';
+  const [pageTitle, pageSub] = getHeader(location.pathname);
 
   function handleLogout() { logout(); navigate('/login'); }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      {/* Sidebar */}
-      <aside
-        className={cn(
-          'flex flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border transition-all duration-200 shrink-0',
-          collapsed ? 'w-[60px]' : 'w-[224px]',
-        )}
-      >
-        {/* Logo */}
-        <div className={cn('flex items-center h-14 px-3 border-b border-sidebar-border shrink-0', collapsed && 'justify-center px-2')}>
-          <Link to="/" className="flex items-center gap-2.5 min-w-0">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
-              <Truck className="h-4.5 w-4.5 text-primary-foreground" />
-            </div>
-            {!collapsed && <span className="font-bold text-sm tracking-tight truncate">Lodestar</span>}
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: C.bg, color: C.text, fontFamily: body }}>
+
+      {/* ── Sidebar ────────────────────────────────────────── */}
+      <aside style={{
+        width: collapsed ? 60 : 236,
+        flexShrink: 0,
+        background: C.surface,
+        borderRight: `1px solid ${C.border}`,
+        display: 'flex',
+        flexDirection: 'column',
+        padding: '18px 14px',
+        transition: 'width .2s',
+        overflow: 'hidden',
+      }}>
+        {/* Brand */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: collapsed ? '4px 0 20px' : '4px 8px 6px', justifyContent: collapsed ? 'center' : 'flex-start' }}>
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: C.text }}>
+            <span style={{ width: 26, height: 26, borderRadius: 7, background: C.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ width: 9, height: 9, background: '#071019', transform: 'rotate(45deg)', borderRadius: 1 }} />
+            </span>
+            {!collapsed && <span style={{ fontFamily: heading, fontWeight: 600, fontSize: 17, letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>Lodestar</span>}
           </Link>
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-5">
-          <NavSection label="Workspace" items={navItems} collapsed={collapsed} />
-
-          <div className={cn('border-t border-sidebar-border', collapsed ? 'mx-2' : 'mx-1')} />
-
-          {/* Settings single entry */}
-          <div className="space-y-0.5">
-            {!collapsed && (
-              <p className="px-3 mb-1.5 text-[10px] font-semibold tracking-widest text-sidebar-foreground/30 uppercase">
-                Settings
-              </p>
-            )}
-            <NavLink
-              to="/app/settings/account"
-              className={({ isActive: _ }) =>
-                cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150',
-                  isOnSettings
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground',
-                  collapsed && 'justify-center px-2',
-                )
-              }
-              title={collapsed ? 'Settings' : undefined}
-            >
-              <Settings className="h-[18px] w-[18px] shrink-0" />
-              {!collapsed && <span>Settings</span>}
-            </NavLink>
+        {/* Role label */}
+        {!collapsed && (
+          <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.faint, padding: '0 8px 14px' }}>
+            {roleLabel} workspace
           </div>
+        )}
+
+        {/* Nav */}
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: 3, flex: 1 }}>
+          {navItems.map(item => <SidebarLink key={item.href} item={item} collapsed={collapsed} />)}
+
+          <div style={{ borderTop: `1px solid ${C.border}`, margin: '10px 0' }} />
+
+          <NavLink
+            to="/app/settings/account"
+            style={({ isActive }) => ({
+              display: 'flex', alignItems: 'center', gap: 11,
+              padding: collapsed ? '10px 0' : '10px 12px',
+              borderRadius: 9, fontSize: 14,
+              border: `1px solid ${isActive ? C.accentLine : 'transparent'}`,
+              background: isActive ? C.accentDim : 'transparent',
+              color: isActive ? C.accent : C.muted,
+              fontWeight: isActive ? 500 : 400,
+              textDecoration: 'none', fontFamily: body, transition: 'all .15s',
+              width: '100%', justifyContent: collapsed ? 'center' : 'flex-start',
+            })}
+            title={collapsed ? 'Settings' : undefined}
+          >
+            {({ isActive }) => (
+              <>
+                <Settings style={{ width: 14, height: 14, flexShrink: 0, color: isActive ? C.accent : C.faint }} />
+                {!collapsed && <span>Settings</span>}
+              </>
+            )}
+          </NavLink>
         </nav>
 
-        {/* User */}
-        <div className={cn('px-2 py-3 border-t border-sidebar-border space-y-1', collapsed && 'px-1')}>
+        {/* User section */}
+        <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: `1px solid ${C.border}` }}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button
-                className={cn(
-                  'flex items-center gap-2.5 w-full px-2 py-2 rounded-lg hover:bg-sidebar-accent/60 transition-colors text-left',
-                  collapsed && 'justify-center',
-                )}
-              >
-                <Avatar className="h-7 w-7 shrink-0">
-                  <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">{initials}</AvatarFallback>
-                </Avatar>
+              <button style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', padding: '6px 4px', borderRadius: 9, justifyContent: collapsed ? 'center' : 'flex-start' }}>
+                <span style={{ width: 34, height: 34, borderRadius: 9, background: C.surface3, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: heading, fontWeight: 600, fontSize: 13, color: C.text, flexShrink: 0 }}>
+                  {initials}
+                </span>
                 {!collapsed && (
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-sidebar-foreground truncate leading-tight">{user?.name}</p>
-                    <p className="text-[11px] text-sidebar-foreground/40 capitalize leading-tight mt-0.5">{user?.role}</p>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 500, color: C.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name}</div>
+                    <div style={{ fontSize: 11.5, color: C.faint }}>{roleLabel}</div>
                   </div>
                 )}
               </button>
@@ -196,53 +212,67 @@ export default function AppShell() {
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {/* Collapse toggle */}
           <button
             onClick={() => setCollapsed(c => !c)}
-            className={cn(
-              'flex items-center gap-2 w-full px-2 py-1.5 rounded-lg text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent/60 transition-colors text-xs',
-              collapsed && 'justify-center',
-            )}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: C.faint, fontSize: 12, fontFamily: mono, padding: '8px 4px', borderRadius: 6, marginTop: 6, justifyContent: collapsed ? 'center' : 'flex-start' }}
           >
-            {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <><ChevronLeft className="h-3.5 w-3.5" /><span>Collapse</span></>}
+            {collapsed
+              ? <ChevronRight style={{ width: 14, height: 14 }} />
+              : <><ChevronLeft style={{ width: 14, height: 14 }} /><span>Collapse</span></>
+            }
           </button>
         </div>
       </aside>
 
-      {/* Main area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      {/* ── Main ─────────────────────────────────────────── */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+
         {/* Topbar */}
-        <header className="h-14 border-b flex items-center justify-between px-5 shrink-0 bg-background">
-          <div className="flex items-center gap-2">
-            {collapsed && (
-              <button onClick={() => setCollapsed(false)} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground">
-                <PanelLeft className="h-4 w-4" />
-              </button>
-            )}
+        <header style={{
+          flexShrink: 0,
+          height: 70,
+          borderBottom: `1px solid ${C.border}`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 28px',
+          background: 'rgba(9,13,19,0.7)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+        }}>
+          <div>
             {pageTitle && (
-              <div className="flex items-center gap-1.5 text-sm">
-                <span className="text-muted-foreground/50 font-medium capitalize text-xs tracking-wide">{user?.role}</span>
-                <span className="text-muted-foreground/30">/</span>
-                <span className="font-semibold text-foreground">{pageTitle}</span>
-              </div>
+              <h1 style={{ fontFamily: heading, fontWeight: 600, fontSize: 20, margin: 0, letterSpacing: '-0.01em', color: C.text }}>{pageTitle}</h1>
+            )}
+            {pageSub && (
+              <div style={{ fontSize: 12.5, color: C.muted, marginTop: 2 }}>{pageSub}</div>
             )}
           </div>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="relative h-9 w-9" onClick={() => navigate('/app/notifications')}>
-              <Bell className="h-[18px] w-[18px]" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <button
+              onClick={() => navigate('/app/notifications')}
+              style={{ position: 'relative', background: 'transparent', border: 'none', cursor: 'pointer', color: C.muted, padding: 6, borderRadius: 8 }}
+            >
+              <Bell style={{ width: 18, height: 18 }} />
               {notifications > 0 && (
-                <span className="absolute top-1 right-1 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center font-bold leading-none">
+                <span style={{ position: 'absolute', top: 4, right: 4, width: 14, height: 14, borderRadius: '50%', background: '#ef4444', color: '#fff', fontSize: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
                   {notifications}
                 </span>
               )}
-            </Button>
+            </button>
           </div>
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto">
+        <main style={{ flex: 1, overflowY: 'auto', background: C.bg }}>
           <Outlet />
         </main>
       </div>
+
+      <style>{`
+        .ld-app-nav a:hover { color: #eaf0f6 !important; background: rgba(255,255,255,.04) !important; }
+      `}</style>
     </div>
   );
 }
