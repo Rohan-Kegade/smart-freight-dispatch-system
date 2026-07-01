@@ -25,11 +25,11 @@ export default function AuthLayout() {
           <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shrink-0">
             <Truck className="h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="font-bold text-lg tracking-tight">FreightDispatch</span>
+          <span className="font-bold text-lg tracking-tight">Lodestar</span>
         </Link>
 
         <div className="relative z-10 flex-1 flex flex-col justify-center py-16">
-          <p className="text-xs font-semibold tracking-widest text-primary uppercase mb-4">Intelligent Dispatch</p>
+          <p className="text-xs font-semibold tracking-widest text-primary uppercase mb-4">AI-Assisted Freight Dispatch</p>
           <h2 className="text-3xl font-bold leading-snug mb-4 text-sidebar-foreground">
             Find the right vehicle in seconds, not minutes.
           </h2>
@@ -65,7 +65,7 @@ export default function AuthLayout() {
             <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shrink-0">
               <Truck className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="font-bold text-lg tracking-tight">FreightDispatch</span>
+            <span className="font-bold text-lg tracking-tight">Lodestar</span>
           </Link>
         </div>
         <div className="w-full max-w-[420px]">

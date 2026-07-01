@@ -46,7 +46,7 @@ export default function LoginPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
-        <p className="text-muted-foreground text-sm mt-1">Sign in to your FreightDispatch account</p>
+        <p className="text-muted-foreground text-sm mt-1">Sign in to your Lodestar account</p>
       </div>
 
       {/* Demo credentials */}

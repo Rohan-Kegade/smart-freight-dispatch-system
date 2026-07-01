@@ -1,378 +1,197 @@
 import { Link } from 'react-router-dom';
-import {
-  Truck, Zap, Brain, MapPin, ShieldCheck, BarChart3,
-  ArrowRight, CheckCircle, Navigation, MessageSquare,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 
-/* ─── Data ───────────────────────────────────────────────────── */
+/* ─── Design tokens ─────────────────────────────────────────── */
+const C = {
+  bg: '#090d13',
+  surface: '#11171f',
+  surface2: '#18212c',
+  border: 'rgba(255,255,255,.08)',
+  border2: 'rgba(255,255,255,.15)',
+  text: '#eaf0f6',
+  muted: '#8a97a6',
+  faint: '#5c6875',
+  accent: '#5aa2f0',
+  accentDim: 'rgba(90,162,240,0.14)',
+  accentSoft: 'rgba(90,162,240,0.22)',
+  accentLine: 'rgba(90,162,240,0.45)',
+  success: '#4fca8b',
+  warn: '#e0a35e',
+};
 
-const STATS = [
-  { value: '< 30 s', label: 'Avg. dispatch time' },
-  { value: '99.8%', label: 'Match accuracy' },
-  { value: '0', label: 'Manual data entry' },
-  { value: '3×', label: 'Faster than spreadsheets' },
-];
+const mono = "'IBM Plex Mono', monospace";
+const heading = "'Space Grotesk', sans-serif";
+const body = "'IBM Plex Sans', system-ui, sans-serif";
 
-const CARGO_TAGS = [
-  { label: 'Electronics', color: 'bg-violet-500/10 text-violet-400 border-violet-500/20' },
-  { label: 'Steel Beams', color: 'bg-slate-500/10 text-slate-400 border-slate-500/20' },
-  { label: 'FMCG', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
-  { label: 'Pharma', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
-  { label: 'Refrigerated', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
-  { label: 'Machinery', color: 'bg-orange-500/10 text-orange-400 border-orange-500/20' },
-  { label: 'Hazmat', color: 'bg-red-500/10 text-red-400 border-red-500/20' },
-  { label: 'Construction', color: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' },
-  { label: 'Automotive', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' },
-  { label: 'Textiles', color: 'bg-pink-500/10 text-pink-400 border-pink-500/20' },
-];
+/* ─── Sub-components ─────────────────────────────────────────── */
 
-const features = [
-  {
-    icon: Brain,
-    title: 'AI-Powered Intake',
-    description: 'Describe your shipment in plain language. The LLM parser extracts pickup, drop, weight, cargo type, and deadline — no forms.',
-    tag: 'NLP',
-    color: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
-  },
-  {
-    icon: Zap,
-    title: 'Instant Matching Engine',
-    description: 'Deterministic algorithm filters every vehicle and driver by capacity, license, availability, and working-hour limits in milliseconds.',
-    tag: 'Algorithm',
-    color: 'text-blue-500 bg-blue-500/10 border-blue-500/20',
-  },
-  {
-    icon: MapPin,
-    title: 'Real-World ETAs',
-    description: 'Deadhead distance and pickup ETA calculated from live Google Maps road data — not straight-line approximations.',
-    tag: 'Google Maps',
-    color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20',
-  },
-  {
-    icon: BarChart3,
-    title: 'Ranked Recommendations',
-    description: 'Top-3 matches scored by proximity, cost, overtime risk, and idle time. Your best option is always at the top.',
-    tag: 'Scoring',
-    color: 'text-violet-500 bg-violet-500/10 border-violet-500/20',
-  },
-  {
-    icon: MessageSquare,
-    title: 'AI Explanations',
-    description: 'Plain-English reasons for every recommendation. The LLM explains the algorithm output — not the other way around.',
-    tag: 'Explainability',
-    color: 'text-pink-500 bg-pink-500/10 border-pink-500/20',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Role-Based Access',
-    description: 'Dispatchers handle the job flow. Admins manage the fleet. Hard permissions enforced at every API layer.',
-    tag: 'RBAC',
-    color: 'text-slate-400 bg-slate-500/10 border-slate-500/20',
-  },
-];
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ fontFamily: mono, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.accent, marginBottom: 18 }}>
+      {children}
+    </div>
+  );
+}
 
-const steps = [
-  { n: '01', title: 'Describe the shipment', body: 'Type a free-text request — cargo type, weight, pickup, drop, deadline. Like texting a colleague.', icon: MessageSquare },
-  { n: '02', title: 'Review parsed details', body: 'AI extracts structured data. Confirm every field before the engine runs — zero ambiguity.', icon: CheckCircle },
-  { n: '03', title: 'See ranked matches', body: 'Top vehicle–driver pairs ranked by distance, cost, and availability. Results in under a second.', icon: BarChart3 },
-  { n: '04', title: 'Confirm with one click', body: 'Booking confirmed, driver notified by SMS, fleet availability updated in real time.', icon: Navigation },
-];
-
-/* ─── Cargo ticker (duplicated for seamless loop) ──────────── */
-const TICKER_ITEMS = [...CARGO_TAGS, ...CARGO_TAGS];
+function H2({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+  return (
+    <h2 style={{ fontFamily: heading, fontWeight: 600, fontSize: 44, lineHeight: 1.05, letterSpacing: '-0.02em', margin: '0 0 20px', ...style }}>
+      {children}
+    </h2>
+  );
+}
 
 /* ─── Component ─────────────────────────────────────────────── */
 
 export default function LandingPage() {
   return (
-    <div>
+    <div style={{ background: C.bg, color: C.text, overflowX: 'hidden', fontFamily: body }}>
+
       {/* ══ HERO ════════════════════════════════════════════════ */}
-      <section className="relative flex items-center justify-center overflow-hidden bg-[#07091a] px-4 py-28 min-h-[92vh]">
+      <section id="top" style={{ position: 'relative', overflow: 'hidden', borderBottom: `1px solid ${C.border}` }}>
+        {/* Grid overlay */}
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          backgroundImage: 'linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px)',
+          backgroundSize: '58px 58px',
+          WebkitMaskImage: 'radial-gradient(ellipse 85% 65% at 50% 0%, #000, transparent 78%)',
+          maskImage: 'radial-gradient(ellipse 85% 65% at 50% 0%, #000, transparent 78%)',
+        }} />
+        {/* Top-right glow */}
+        <div style={{ position: 'absolute', top: -220, right: -120, width: 640, height: 640, background: `radial-gradient(circle, ${C.accentDim}, transparent 68%)`, pointerEvents: 'none' }} />
 
-        {/* Blueprint grid */}
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.055]"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(99,133,255,0.6) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(99,133,255,0.6) 1px, transparent 1px)
-            `,
-            backgroundSize: '64px 64px',
-          }}
-        />
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '96px 32px 92px', position: 'relative', display: 'grid', gridTemplateColumns: '1.02fr .98fr', gap: 60, alignItems: 'center' }}>
 
-        {/* Radial blue glow from top */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_55%_at_50%_-5%,rgba(37,99,235,0.22),transparent)]" />
-
-        {/* Amber warm glow bottom-left */}
-        <div className="pointer-events-none absolute bottom-0 left-0 w-1/2 h-1/2 bg-[radial-gradient(ellipse_60%_60%_at_0%_100%,rgba(245,158,11,0.07),transparent)]" />
-
-        <div className="relative max-w-5xl mx-auto w-full text-center">
-
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/25 text-amber-400 rounded-full px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] mb-8">
-            <Truck className="h-3.5 w-3.5" />
-            Intelligent Freight Dispatch
+          {/* Left — copy */}
+          <div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '6px 13px', border: `1px solid ${C.border2}`, borderRadius: 100, background: C.surface, fontFamily: mono, fontSize: 11.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.accent, marginBottom: 26 }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: C.accent }} />
+              AI-assisted freight dispatch
+            </div>
+            <h1 style={{ fontFamily: heading, fontWeight: 600, fontSize: 60, lineHeight: 1.02, letterSpacing: '-0.025em', margin: '0 0 22px', color: C.text }}>
+              Match every load to the right truck in{' '}
+              <span style={{ color: C.accent }}>seconds.</span>
+            </h1>
+            <p style={{ fontSize: 19, lineHeight: 1.55, color: C.muted, margin: '0 0 34px', maxWidth: 520 }}>
+              A dispatcher types a request in plain language. Lodestar parses it, runs a deterministic matching engine across your fleet, and returns a ranked, explained shortlist of vehicle + driver + time slot — no invalid matches, ever.
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 30 }}>
+              <Link to="/signup" style={{ background: C.accent, color: '#071019', fontWeight: 600, fontSize: 15, padding: '14px 26px', borderRadius: 9, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 9, boxShadow: `0 6px 22px ${C.accentDim}` }}>
+                Start free trial <span style={{ fontFamily: mono }}>→</span>
+              </Link>
+              <a href="#how" style={{ border: `1px solid ${C.border2}`, color: C.text, fontWeight: 500, fontSize: 15, padding: '14px 24px', borderRadius: 9, textDecoration: 'none' }}>
+                See how it works
+              </a>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 22, fontSize: 13, color: C.faint, fontFamily: mono }}>
+              <span>✓ Deterministic core</span>
+              <span>✓ Google Maps ETAs</span>
+              <span>✓ Role-based access</span>
+            </div>
           </div>
 
-          {/* Headline */}
-          <h1 className="text-5xl md:text-[5.5rem] font-black text-white leading-[1.0] tracking-tight mb-6">
-            Right vehicle,<br />
-            right driver,{' '}
-            <span
-              className="relative"
-              style={{
-                background: 'linear-gradient(135deg, #f59e0b 0%, #3b82f6 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}
-            >
-              30 seconds.
-            </span>
-          </h1>
-
-          <p className="text-white/45 text-lg max-w-lg mx-auto mb-10 leading-relaxed">
-            Describe your shipment in plain language. The AI parses it, the engine
-            matches it, your dispatcher confirms it. No spreadsheets. No calls.
-          </p>
-
-          {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-16">
-            <Button
-              size="lg"
-              asChild
-              className="bg-amber-500 hover:bg-amber-400 text-black font-bold gap-2 px-8 h-12"
-            >
-              <Link to="/signup">Start free trial <ArrowRight className="h-4 w-4" /></Link>
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              asChild
-              className="bg-transparent border-white/15 text-white/75 hover:bg-white/[0.07] hover:text-white hover:border-white/25 px-8 h-12"
-            >
-              <Link to="/login">Sign in</Link>
-            </Button>
-          </div>
-
-          {/* ── Dispatch preview card ─────────────────────────── */}
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-white/[0.035] border border-white/[0.09] rounded-2xl p-5 backdrop-blur-sm text-left shadow-2xl shadow-black/40">
-
-              {/* Card header */}
-              <div className="flex items-center justify-between mb-5">
-                <div className="flex items-center gap-2">
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
-                  </span>
-                  <span className="text-[10px] text-white/40 uppercase tracking-[0.14em] font-semibold">Live dispatch</span>
-                </div>
-                <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 rounded-full px-2.5 py-0.5 font-bold tracking-wide">
-                  ✓ Matched in 0.3 s
-                </span>
+          {/* Right — dispatch card */}
+          <div style={{ position: 'relative' }}>
+            <div style={{ background: C.surface, border: `1px solid ${C.border2}`, borderRadius: 16, padding: 20, boxShadow: '0 30px 80px rgba(0,0,0,.5)', position: 'relative' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: mono, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.faint, marginBottom: 12 }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.accent }} />
+                Incoming request
               </div>
-
-              {/* Route track */}
-              <div className="relative flex items-center gap-3 mb-5">
-                {/* From */}
-                <div className="min-w-[128px] text-right">
-                  <p className="text-[9px] text-white/30 uppercase tracking-[0.14em] mb-0.5">Pickup</p>
-                  <p className="text-sm font-bold text-white leading-tight">Bhiwandi Depot</p>
-                  <p className="text-[11px] text-white/40 mt-0.5">5,000 kg · Electronics</p>
-                </div>
-
-                {/* Animated route line */}
-                <div className="flex-1 relative h-9">
-                  {/* Dashed path */}
-                  <div className="absolute top-1/2 left-2.5 right-2.5 border-t-2 border-dashed border-white/[0.12] -translate-y-1/2" />
-                  {/* Origin dot */}
-                  <div className="absolute top-1/2 left-2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-amber-400 ring-4 ring-amber-400/20 z-10" />
-                  {/* Animated truck */}
-                  <div className="truck-animate z-20">
-                    <div className="h-7 w-7 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/40 border border-primary/50">
-                      <Truck className="h-3.5 w-3.5 text-white" />
-                    </div>
-                  </div>
-                  {/* Destination dot */}
-                  <div className="absolute top-1/2 right-2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-blue-400 ring-4 ring-blue-400/20 z-10" />
-                </div>
-
-                {/* To */}
-                <div className="min-w-[128px]">
-                  <p className="text-[9px] text-white/30 uppercase tracking-[0.14em] mb-0.5">Drop</p>
-                  <p className="text-sm font-bold text-white leading-tight">Andheri East</p>
-                  <p className="text-[11px] text-white/40 mt-0.5">Deadline 3:00 PM</p>
-                </div>
+              <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '15px 16px', fontSize: 14.5, lineHeight: 1.5, color: C.text }}>
+                "Need to move <span style={{ color: C.accent }}>4.2 tonnes of chilled dairy</span> from Chennai to Bengaluru, must arrive before <span style={{ color: C.accent }}>6 PM tomorrow</span>."
               </div>
-
-              {/* Match stats */}
-              <div className="grid grid-cols-4 gap-2">
-                {[
-                  { label: 'Vehicle',  value: 'MH-12-AB-1234', hi: false },
-                  { label: 'Driver',   value: 'Ramesh Kumar',  hi: false },
-                  { label: 'ETA',      value: '1 h 45 m',     hi: true  },
-                  { label: 'Distance', value: '58 km',         hi: false },
-                ].map(d => (
-                  <div
-                    key={d.label}
-                    className="bg-white/[0.04] border border-white/[0.07] rounded-lg px-3 py-2.5"
-                  >
-                    <p className="text-[9px] text-white/30 uppercase tracking-[0.12em] mb-1">{d.label}</p>
-                    <p className={cn('text-[11px] font-bold truncate', d.hi ? 'text-amber-400' : 'text-white')}>
-                      {d.value}
-                    </p>
-                  </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '16px 0 6px', fontFamily: mono, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.faint }}>
+                Parsed <span style={{ flex: 1, height: 1, background: C.border }} />
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 18 }}>
+                {['TYPE · Refrigerated', 'WT · 4.2 t', 'MAA → BLR', 'BY · Tue 18:00'].map(chip => (
+                  <span key={chip} style={{ fontFamily: mono, fontSize: 11.5, padding: '5px 9px', borderRadius: 6, background: C.surface2, border: `1px solid ${C.border}`, color: C.muted }}>{chip}</span>
                 ))}
               </div>
-
-              {/* Score bar */}
-              <div className="mt-4 flex items-center justify-between">
-                <p className="text-[10px] text-white/30">
-                  Match score
-                  <span className="ml-2 text-white/70 font-semibold">98 / 100</span>
-                </p>
-                <div className="flex-1 mx-4 h-1 rounded-full bg-white/[0.06] overflow-hidden">
-                  <div className="h-full w-[98%] rounded-full bg-gradient-to-r from-amber-500 to-blue-500" />
+              {/* Best match card */}
+              <div style={{ background: `linear-gradient(180deg, ${C.accentDim}, transparent)`, border: `1px solid ${C.accentLine}`, borderRadius: 12, padding: '15px 16px', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, width: '38%', height: 2, background: `linear-gradient(90deg, transparent, ${C.accent}, transparent)`, animation: 'ld-sweep 3.2s ease-in-out infinite' }} />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                    <span style={{ fontFamily: heading, fontWeight: 700, fontSize: 13, width: 26, height: 26, borderRadius: 7, background: C.accent, color: '#071019', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>1</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: mono, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: C.success }}>
+                      <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.success, animation: 'ld-pulse 1.8s ease-in-out infinite' }} />
+                      Best match
+                    </span>
+                  </div>
+                  <span style={{ fontFamily: heading, fontWeight: 600, fontSize: 22, color: C.text }}>
+                    94<span style={{ fontSize: 12, color: C.faint }}>/100</span>
+                  </span>
                 </div>
-                <p className="text-[10px] text-white/30">Best match #1 of 3</p>
+                <div style={{ display: 'flex', gap: 20, marginBottom: 11 }}>
+                  {[
+                    { label: 'Vehicle', val: 'TN-09 CG 4521', sub: 'Reefer · 6 t' },
+                    { label: 'Driver', val: 'R. Kumar', sub: 'HR licence · 6h legal left' },
+                    { label: 'Fit', val: 'On time', sub: '12 km deadhead', valColor: C.success },
+                  ].map(item => (
+                    <div key={item.label}>
+                      <div style={{ fontSize: 10, fontFamily: mono, letterSpacing: '0.08em', textTransform: 'uppercase', color: C.faint, marginBottom: 3 }}>{item.label}</div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: item.valColor }}>{item.val}</div>
+                      <div style={{ fontSize: 12, color: C.muted }}>{item.sub}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ fontSize: 12.5, lineHeight: 1.45, color: C.muted, borderTop: `1px solid ${C.border}`, paddingTop: 10 }}>
+                  <span style={{ color: C.accent, fontFamily: mono, fontSize: 11 }}>WHY</span>
+                  {' '}Closest available reefer with matching capacity; driver has the most legal hours remaining and the lowest deadhead of all valid pairs.
+                </div>
               </div>
+            </div>
+            {/* Floating badge */}
+            <div style={{ position: 'absolute', bottom: -18, left: -22, background: C.surface2, border: `1px solid ${C.border2}`, borderRadius: 10, padding: '10px 14px', boxShadow: '0 14px 34px rgba(0,0,0,.5)', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontFamily: heading, fontWeight: 700, fontSize: 20, color: C.accent }}>2.4s</span>
+              <span style={{ fontSize: 11, lineHeight: 1.3, color: C.muted }}>from call<br />to shortlist</span>
             </div>
           </div>
         </div>
-
-        {/* Fade into next section */}
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#07091a] to-transparent pointer-events-none" />
       </section>
 
-      {/* ══ CARGO TICKER ════════════════════════════════════════ */}
-      <div className="bg-[#07091a] border-b border-white/[0.07] py-4 overflow-hidden">
-        <div className="ticker-track gap-3">
-          {TICKER_ITEMS.map((t, i) => (
-            <span
-              key={i}
-              className={cn(
-                'inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border whitespace-nowrap mx-1.5',
-                t.color,
-              )}
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70 shrink-0" />
-              {t.label}
-            </span>
-          ))}
+      {/* ══ TRUST STRIP ════════════════════════════════════════ */}
+      <div style={{ borderBottom: `1px solid ${C.border}`, background: C.surface }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '22px 32px', display: 'flex', alignItems: 'center', gap: 40, flexWrap: 'wrap' }}>
+          <span style={{ fontFamily: mono, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.faint, whiteSpace: 'nowrap' }}>Built for heterogeneous fleets</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap', flex: 1, justifyContent: 'space-around', fontSize: 13, color: C.muted, fontFamily: mono }}>
+            <span>Mini trucks</span><span style={{ color: C.faint }}>·</span>
+            <span>Flatbeds</span><span style={{ color: C.faint }}>·</span>
+            <span>Reefers</span><span style={{ color: C.faint }}>·</span>
+            <span>Container trailers</span><span style={{ color: C.faint }}>·</span>
+            <span>Vans</span>
+          </div>
         </div>
       </div>
 
-      {/* ══ STATS ════════════════════════════════════════════════ */}
-      <section className="bg-[#07091a] border-b border-white/[0.07]">
-        <div className="max-w-4xl mx-auto px-4 py-10 grid grid-cols-2 md:grid-cols-4 divide-x divide-white/[0.07]">
-          {STATS.map(s => (
-            <div key={s.label} className="text-center px-6">
-              <p className="text-4xl md:text-5xl font-black text-white tracking-tight">{s.value}</p>
-              <p className="text-[11px] text-white/35 mt-2 uppercase tracking-[0.1em]">{s.label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ══ HOW IT WORKS ════════════════════════════════════════ */}
-      <section id="how-it-works" className="py-24 px-4 bg-background">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-xs font-bold text-primary/60 uppercase tracking-[0.15em] mb-3">Process</p>
-            <h2 className="text-4xl font-black mb-4 tracking-tight">Four stops, one booking.</h2>
-            <p className="text-muted-foreground max-w-sm mx-auto">
-              From raw text request to confirmed dispatch — in under 30 seconds.
+      {/* ══ PROBLEM ═════════════════════════════════════════════ */}
+      <section id="problem" style={{ padding: '120px 0', borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 64, alignItems: 'center' }}>
+          <div>
+            <SectionLabel>The status quo</SectionLabel>
+            <H2>Dispatch shouldn't live in one person's head.</H2>
+            <p style={{ fontSize: 17, lineHeight: 1.6, color: C.muted, margin: '0 0 18px' }}>
+              An ad-hoc load comes in by phone. The dispatcher has to hold the whole fleet in memory — which trucks are the right type, which are free, which drivers are licensed and haven't run out of legal hours — then pick a combination that's actually optimal.
+            </p>
+            <p style={{ fontSize: 17, lineHeight: 1.6, color: C.muted, margin: 0 }}>
+              It's slow, error-prone, and completely dependent on one experienced operator. When they're out, dispatch stalls.
             </p>
           </div>
-
-          <div className="grid md:grid-cols-4 gap-4">
-            {steps.map((s, i) => (
-              <div key={s.n} className="relative group">
-                {/* Connector */}
-                {i < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-[2.1rem] left-[calc(50%+2.5rem)] right-[-calc(50%-2.5rem)] h-px bg-gradient-to-r from-border to-transparent z-0" />
-                )}
-                <div className="relative z-10 flex flex-col items-center text-center p-5 rounded-2xl border border-border bg-background hover:border-primary/30 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
-                  {/* Icon + step number */}
-                  <div className="relative mb-4">
-                    <div className="h-16 w-16 rounded-2xl bg-muted/60 flex items-center justify-center group-hover:bg-primary/[0.07] transition-colors">
-                      <s.icon className="h-7 w-7 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </div>
-                    <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-primary text-primary-foreground text-[10px] font-black flex items-center justify-center">
-                      {i + 1}
-                    </span>
-                  </div>
-                  <p className="text-[10px] font-black text-primary/40 tracking-[0.15em] mb-1.5">{s.n}</p>
-                  <h3 className="font-bold text-sm mb-2">{s.title}</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{s.body}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ══ FEATURES ════════════════════════════════════════════ */}
-      <section id="features" className="py-24 px-4 bg-muted/20 border-t border-border">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-xs font-bold text-primary/60 uppercase tracking-[0.15em] mb-3">Capabilities</p>
-            <h2 className="text-4xl font-black mb-4 tracking-tight">Everything your team needs</h2>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              Built for freight companies that move fast and can't afford mismatches.
-            </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-4">
-            {features.map(f => (
-              <div
-                key={f.title}
-                className="bg-background rounded-2xl border border-border p-6 hover:border-primary/30 hover:shadow-sm transition-all duration-200 group"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className={cn('h-11 w-11 rounded-xl flex items-center justify-center border', f.color)}>
-                    <f.icon className="h-5 w-5" />
-                  </div>
-                  <span className={cn('text-[9px] font-black uppercase tracking-[0.12em] px-2 py-1 rounded border font-mono', f.color)}>
-                    {f.tag}
-                  </span>
-                </div>
-                <h3 className="font-bold mb-2 group-hover:text-primary transition-colors">{f.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{f.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ══ TRUST SECTION ═══════════════════════════════════════ */}
-      <section className="py-24 px-4 bg-background border-t border-border">
-        <div className="max-w-4xl mx-auto">
-          <div className="rounded-3xl border border-border bg-muted/30 p-10 md:p-14 text-center">
-            <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full px-3.5 py-1.5 text-xs font-bold mb-8">
-              <ShieldCheck className="h-3.5 w-3.5" /> Trustworthy by design
-            </div>
-            <h2 className="text-3xl md:text-4xl font-black mb-4 tracking-tight">
-              Algorithm core.{' '}
-              <span className="text-muted-foreground font-medium">AI augmentation.</span>
-            </h2>
-            <p className="text-muted-foreground text-base leading-relaxed mb-10 max-w-2xl mx-auto">
-              The matching engine is deterministic and fully testable. The LLM is used only at the
-              edges — to parse free-text input and explain the algorithm's ranked output.{' '}
-              <strong className="text-foreground font-semibold">The AI never decides who gets assigned.</strong>
-            </p>
-            <div className="grid md:grid-cols-3 gap-4">
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: 28 }}>
+            <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.faint, marginBottom: 18 }}>What breaks today</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {[
-                { icon: CheckCircle, text: 'Zero invalid matches — hard constraints enforced', color: 'text-emerald-500' },
-                { icon: BarChart3,   text: 'Ranked top-3 recommendations always returned',    color: 'text-blue-500' },
-                { icon: Brain,       text: 'Every decision explainable in plain English',      color: 'text-violet-500' },
-              ].map(p => (
-                <div key={p.text} className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-background border border-border">
-                  <p.icon className={cn('h-6 w-6', p.color)} />
-                  <p className="text-sm text-muted-foreground text-center leading-snug">{p.text}</p>
+                { title: 'Manual mental matching', body: 'Capacity, cargo type, licences and hours all juggled by hand under time pressure.' },
+                { title: 'Invalid assignments slip through', body: 'Perishables on a dry van, or a driver over their legal limit — caught too late.' },
+                { title: 'No visibility into "why"', body: "Decisions can't be explained, audited, or handed off to another dispatcher." },
+                { title: 'Idle trucks, extra deadhead', body: '"Good enough" picks quietly burn cost the whole fleet pays for.' },
+              ].map(item => (
+                <div key={item.title} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                  <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', border: `1px solid ${C.warn}`, color: C.warn, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, marginTop: 1 }}>✕</span>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 2 }}>{item.title}</div>
+                    <div style={{ fontSize: 13.5, color: C.muted, lineHeight: 1.5 }}>{item.body}</div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -380,59 +199,317 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══ CTA ═════════════════════════════════════════════════ */}
-      <section className="relative py-24 px-4 bg-[#07091a] text-white overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(99,133,255,0.8) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(99,133,255,0.8) 1px, transparent 1px)
-            `,
-            backgroundSize: '64px 64px',
-          }}
-        />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_100%,rgba(245,158,11,0.08),transparent)]" />
-
-        <div className="relative max-w-2xl mx-auto text-center">
-          {/* Truck icon in amber ring */}
-          <div className="relative inline-flex mb-8">
-            <div className="h-20 w-20 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center">
-              <Truck className="h-9 w-9 text-amber-400" />
-            </div>
-            <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-emerald-500 border-2 border-[#07091a] flex items-center justify-center">
-              <CheckCircle className="h-3 w-3 text-white" />
-            </span>
+      {/* ══ HOW IT WORKS ════════════════════════════════════════ */}
+      <section id="how" style={{ padding: '120px 0', borderBottom: `1px solid ${C.border}`, position: 'relative' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px' }}>
+          <div style={{ maxWidth: 640, marginBottom: 64 }}>
+            <SectionLabel>The flow</SectionLabel>
+            <H2 style={{ margin: '0 0 14px' }}>Request to booking in under a minute.</H2>
+            <p style={{ fontSize: 17, lineHeight: 1.6, color: C.muted, margin: 0 }}>
+              Three steps. The dispatcher stays in control at every one — nothing is confirmed on unverified AI output.
+            </p>
           </div>
-
-          <h2 className="text-4xl md:text-5xl font-black mb-5 tracking-tight">
-            Ready to dispatch smarter?
-          </h2>
-          <p className="text-white/45 text-lg mb-10 leading-relaxed max-w-md mx-auto">
-            Join freight teams that use FreightDispatch to eliminate manual matching errors
-            and cut dispatch time by 3×.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button
-              size="lg"
-              asChild
-              className="bg-amber-500 hover:bg-amber-400 text-black font-bold gap-2 px-8 h-12"
-            >
-              <Link to="/signup">Get started for free <ArrowRight className="h-4 w-4" /></Link>
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              asChild
-              className="bg-transparent border-white/15 text-white/70 hover:bg-white/[0.07] hover:text-white hover:border-white/25 px-8 h-12"
-            >
-              <Link to="/login">Sign in</Link>
-            </Button>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+            {[
+              {
+                n: '01',
+                title: 'Capture the request',
+                body: 'Type what the client said, in plain language. Lodestar parses it into structured fields — cargo, weight, route, deadline, handling needs — and shows them for a one-glance review and edit.',
+                icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke={C.accent} strokeWidth="1.5"><line x1="3" y1="6" x2="17" y2="6"/><line x1="3" y1="10" x2="13" y2="10"/><line x1="3" y1="14" x2="15" y2="14"/></svg>,
+              },
+              {
+                n: '02',
+                title: 'Get ranked matches',
+                body: 'The engine filters to legal, capable, available pairs, then scores them on deadhead, cost, overtime risk and idle time — returning a ranked shortlist, each with a plain-language reason.',
+                icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke={C.accent} strokeWidth="1.5"><rect x="3" y="4" width="14" height="3" rx="1"/><rect x="3" y="9" width="10" height="3" rx="1"/><rect x="3" y="14" width="6" height="3" rx="1"/></svg>,
+              },
+              {
+                n: '03',
+                title: 'Confirm in one click',
+                body: 'Pick a match and confirm. Lodestar writes the booking, updates availability automatically, and texts the driver the job details over SMS. No double-entry, no conflicting states.',
+                icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke={C.accent} strokeWidth="1.6"><path d="M4 10.5l4 4 8-9"/></svg>,
+              },
+            ].map(step => (
+              <div key={step.n} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: 28 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
+                  <span style={{ fontFamily: mono, fontSize: 12, color: C.faint }}>{step.n}</span>
+                  <span style={{ width: 40, height: 40, borderRadius: 10, background: C.accentDim, border: `1px solid ${C.accentLine}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {step.icon}
+                  </span>
+                </div>
+                <h3 style={{ fontFamily: heading, fontWeight: 600, fontSize: 21, margin: '0 0 10px' }}>{step.title}</h3>
+                <p style={{ fontSize: 14.5, lineHeight: 1.55, color: C.muted, margin: 0 }}>{step.body}</p>
+              </div>
+            ))}
           </div>
-
-          <p className="text-white/25 text-xs mt-8">No credit card required · Free 14-day trial</p>
         </div>
       </section>
+
+      {/* ══ MATCHING ENGINE ═════════════════════════════════════ */}
+      <section id="engine" style={{ padding: '120px 0', borderBottom: `1px solid ${C.border}`, background: C.surface }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '.9fr 1.1fr', gap: 60, alignItems: 'center' }}>
+            <div>
+              <SectionLabel>The core</SectionLabel>
+              <H2>A deterministic engine. AI on top, never in the way.</H2>
+              <p style={{ fontSize: 17, lineHeight: 1.6, color: C.muted, margin: '0 0 24px' }}>
+                The match itself is decided by a transparent, rules-based algorithm — so results are repeatable and auditable. AI handles the language and the explanation, not the decision.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {[
+                  { title: 'Hard constraints are absolute.', body: 'Capacity, cargo compatibility, licence class, legal hours and availability — a fail on any one removes the pair.' },
+                  { title: 'Zero invalid matches recommended.', body: 'By construction — invalid pairs never reach the scoring stage.' },
+                  { title: 'Real-world distance & ETA.', body: 'Deadhead and route legs come from a live routing API, not straight-line guesses.' },
+                ].map(item => (
+                  <div key={item.title} style={{ display: 'flex', gap: 12, alignItems: 'center', fontSize: 15 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: C.success, flexShrink: 0 }} />
+                    <span><b style={{ fontWeight: 600 }}>{item.title}</b> <span style={{ color: C.muted }}>{item.body}</span></span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Pipeline visual */}
+            <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 16, padding: 26 }}>
+              <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.faint, marginBottom: 12 }}>Stage 1 · Hard filters</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
+                {['Vehicle type ✓', 'Capacity ✓', 'Licence class ✓', 'Legal hours ✓', 'Availability ✓'].map(tag => (
+                  <span key={tag} style={{ fontSize: 12.5, padding: '6px 11px', borderRadius: 7, background: C.surface2, border: `1px solid ${C.border}` }}>{tag}</span>
+                ))}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: C.faint, fontFamily: mono, fontSize: 11, marginBottom: 14 }}>
+                <span style={{ flex: 1, height: 1, background: C.border }} />
+                84 pairs → 11 valid
+                <span style={{ flex: 1, height: 1, background: C.border }} />
+              </div>
+              <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.faint, marginBottom: 12 }}>Stage 2 · Weighted scoring</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 18 }}>
+                {[
+                  { label: 'Deadhead dist.', pct: 35 },
+                  { label: 'Est. cost', pct: 28 },
+                  { label: 'Overtime risk', pct: 22 },
+                  { label: 'Idle time', pct: 15 },
+                ].map(s => (
+                  <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ width: 110, fontSize: 13, color: C.muted }}>{s.label}</span>
+                    <span style={{ flex: 1, height: 6, borderRadius: 3, background: C.surface2, overflow: 'hidden' }}>
+                      <span style={{ display: 'block', height: '100%', width: `${s.pct}%`, background: C.accent, borderRadius: 3 }} />
+                    </span>
+                    <span style={{ fontFamily: mono, fontSize: 11, color: C.faint, width: 28, textAlign: 'right' }}>{s.pct}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ background: C.accentDim, border: `1px solid ${C.accentLine}`, borderRadius: 10, padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontFamily: mono, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: C.accent }}>Stage 3 · Ranked output</span>
+                <span style={{ fontSize: 13, fontWeight: 600 }}>Top 5 returned</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ FEATURES ════════════════════════════════════════════ */}
+      <section id="features" style={{ padding: '120px 0', borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px' }}>
+          <div style={{ maxWidth: 640, marginBottom: 56 }}>
+            <SectionLabel>Everything in the loop</SectionLabel>
+            <h2 style={{ fontFamily: heading, fontWeight: 600, fontSize: 44, lineHeight: 1.05, letterSpacing: '-0.02em', margin: 0 }}>
+              One system from the client call to the driver's phone.
+            </h2>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+            {[
+              {
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="1.5" style={{ marginBottom: 16 }}><rect x="3" y="4" width="18" height="13" rx="2"/><line x1="7" y1="8" x2="14" y2="8"/><line x1="7" y1="12" x2="11" y2="12"/><path d="M8 17l-2 3"/></svg>,
+                title: 'Natural-language intake',
+                body: 'Type the request as spoken. Structured fields come back via reliable function-calling, with a manual form as fallback.',
+              },
+              {
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="1.5" style={{ marginBottom: 16 }}><rect x="3" y="5" width="18" height="3" rx="1"/><rect x="3" y="11" width="13" height="3" rx="1"/><rect x="3" y="17" width="8" height="3" rx="1"/></svg>,
+                title: 'Deterministic matching',
+                body: 'Rules-based filtering and weighted scoring across vehicle, driver and time slot — repeatable and fully auditable.',
+              },
+              {
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="1.5" style={{ marginBottom: 16 }}><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4.5"/></svg>,
+                title: 'Plain-language explanations',
+                body: 'Every recommendation comes with a readable "why" grounded in the actual scoring output — never a black box.',
+              },
+              {
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="1.5" style={{ marginBottom: 16 }}><circle cx="6" cy="7" r="2.2"/><circle cx="18" cy="17" r="2.2"/><path d="M8 8l8 8"/></svg>,
+                title: 'Real-world ETAs',
+                body: 'Deadhead and route legs pulled from Google Maps, so distance, duration and on-time fit reflect actual roads.',
+              },
+              {
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="1.5" style={{ marginBottom: 16 }}><rect x="2" y="8" width="12" height="8" rx="1"/><path d="M14 11h4l3 3v2h-7z"/><circle cx="7" cy="17" r="1.8"/><circle cx="17" cy="17" r="1.8"/></svg>,
+                title: 'Fleet & driver roster',
+                body: 'Admins maintain vehicles, drivers, licences, capacity and planned exceptions like maintenance and leave.',
+              },
+              {
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="1.5" style={{ marginBottom: 16 }}><rect x="4" y="3" width="16" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><path d="M8 16h4"/></svg>,
+                title: 'Auto availability & SMS',
+                body: 'Availability is derived from confirmed bookings — one source of truth — and drivers get an SMS with job details on confirm.',
+              },
+            ].map(f => (
+              <div key={f.title} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 26 }}>
+                {f.icon}
+                <h3 style={{ fontFamily: heading, fontWeight: 600, fontSize: 18, margin: '0 0 8px' }}>{f.title}</h3>
+                <p style={{ fontSize: 14, lineHeight: 1.55, color: C.muted, margin: 0 }}>{f.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══ PRODUCT MOCK ════════════════════════════════════════ */}
+      <section style={{ padding: '120px 0', borderBottom: `1px solid ${C.border}`, position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: 40, left: '50%', transform: 'translateX(-50%)', width: 900, height: 400, background: `radial-gradient(ellipse, ${C.accentDim}, transparent 70%)`, pointerEvents: 'none' }} />
+        <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 32px', position: 'relative' }}>
+          <div style={{ textAlign: 'center', maxWidth: 620, margin: '0 auto 48px' }}>
+            <SectionLabel>The dispatch desk</SectionLabel>
+            <h2 style={{ fontFamily: heading, fontWeight: 600, fontSize: 42, lineHeight: 1.06, letterSpacing: '-0.02em', margin: 0 }}>See the whole shortlist, decide in a glance.</h2>
+          </div>
+          {/* Browser window mockup */}
+          <div style={{ background: C.surface, border: `1px solid ${C.border2}`, borderRadius: 14, overflow: 'hidden', boxShadow: '0 40px 100px rgba(0,0,0,.55)' }}>
+            {/* Chrome bar */}
+            <div style={{ height: 42, background: C.surface2, borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', padding: '0 16px', gap: 8 }}>
+              <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#ff5f57' }} />
+              <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#febc2e' }} />
+              <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#28c840' }} />
+              <span style={{ margin: '0 auto', fontFamily: mono, fontSize: 12, color: C.faint, background: C.bg, padding: '4px 16px', borderRadius: 6, border: `1px solid ${C.border}` }}>app.lodestar.io/dispatch</span>
+            </div>
+            {/* App body */}
+            <div style={{ display: 'flex', minHeight: 460 }}>
+              {/* Sidebar */}
+              <div style={{ width: 210, flexShrink: 0, background: C.bg, borderRight: `1px solid ${C.border}`, padding: '18px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '0 8px 18px' }}>
+                  <span style={{ width: 22, height: 22, borderRadius: 6, background: C.accent, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ width: 8, height: 8, background: '#071019', transform: 'rotate(45deg)', borderRadius: 1 }} />
+                  </span>
+                  <span style={{ fontFamily: heading, fontWeight: 600, fontSize: 15 }}>Lodestar</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {[
+                    { label: 'Dispatch', active: true },
+                    { label: 'Fleet', active: false },
+                    { label: 'Drivers', active: false },
+                    { label: 'Calendar', active: false },
+                    { label: 'Bookings', active: false },
+                  ].map(nav => (
+                    <span key={nav.label} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 10px', borderRadius: 8, background: nav.active ? C.accentDim : 'transparent', color: nav.active ? C.accent : C.muted, fontSize: 13.5, fontWeight: nav.active ? 500 : 400 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: nav.active ? C.accent : C.faint }} />
+                      {nav.label}
+                    </span>
+                  ))}
+                </div>
+                <div style={{ marginTop: 22, padding: '0 10px', fontFamily: mono, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: C.faint }}>Signed in</div>
+                <div style={{ marginTop: 8, padding: '8px 10px', borderRadius: 8, background: C.surface, fontSize: 12.5 }}>
+                  A. Dispatcher
+                  <div style={{ fontSize: 11, color: C.faint }}>Dispatcher role</div>
+                </div>
+              </div>
+              {/* Main pane */}
+              <div style={{ flex: 1, padding: '22px 24px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 6 }}>
+                  <div>
+                    <div style={{ fontFamily: mono, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.faint, marginBottom: 6 }}>Request #4471 · parsed</div>
+                    <div style={{ fontFamily: heading, fontWeight: 600, fontSize: 19 }}>Chilled dairy · Chennai → Bengaluru</div>
+                  </div>
+                  <span style={{ fontFamily: mono, fontSize: 11, color: C.success, border: `1px solid ${C.success}`, borderRadius: 100, padding: '5px 11px', whiteSpace: 'nowrap' }}>3 valid matches</span>
+                </div>
+                <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginBottom: 22 }}>
+                  {['Refrigerated', '4.2 t', 'By Tue 18:00'].map(chip => (
+                    <span key={chip} style={{ fontFamily: mono, fontSize: 11, padding: '4px 9px', borderRadius: 6, background: C.surface2, border: `1px solid ${C.border}`, color: C.muted }}>{chip}</span>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {/* Best match row */}
+                  <div style={{ border: `1px solid ${C.accentLine}`, background: `linear-gradient(180deg, ${C.accentDim}, transparent)`, borderRadius: 12, padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 18 }}>
+                    <span style={{ fontFamily: heading, fontWeight: 700, fontSize: 15, width: 30, height: 30, borderRadius: 8, background: C.accent, color: '#071019', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>1</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+                        <span style={{ fontWeight: 600, fontSize: 15 }}>TN-09 CG 4521</span>
+                        <span style={{ fontSize: 12, color: C.muted }}>Reefer 6t · R. Kumar</span>
+                      </div>
+                      <div style={{ fontSize: 12.5, color: C.muted }}>12 km deadhead · on-time · 6h legal hours left</div>
+                    </div>
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <div style={{ fontFamily: heading, fontWeight: 600, fontSize: 20 }}>94</div>
+                      <div style={{ fontSize: 10, color: C.faint, fontFamily: mono }}>SCORE</div>
+                    </div>
+                    <button style={{ flexShrink: 0, background: C.accent, color: '#071019', fontWeight: 600, fontSize: 13, fontFamily: body, border: 'none', padding: '10px 18px', borderRadius: 8, cursor: 'pointer' }}>Confirm</button>
+                  </div>
+                  {/* Other rows */}
+                  {[
+                    { rank: 2, vehicle: 'TN-11 AB 8832', detail: 'Reefer 8t · S. Nair', desc: '28 km deadhead · on-time · slightly higher cost', score: 87 },
+                    { rank: 3, vehicle: 'KA-05 MN 2290', detail: 'Reefer 6t · D. Rao', desc: '41 km deadhead · on-time · 3h legal hours left', score: 79 },
+                  ].map(row => (
+                    <div key={row.rank} style={{ border: `1px solid ${C.border}`, background: C.bg, borderRadius: 12, padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 18 }}>
+                      <span style={{ fontFamily: heading, fontWeight: 700, fontSize: 15, width: 30, height: 30, borderRadius: 8, background: C.surface2, color: C.muted, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{row.rank}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+                          <span style={{ fontWeight: 600, fontSize: 15 }}>{row.vehicle}</span>
+                          <span style={{ fontSize: 12, color: C.muted }}>{row.detail}</span>
+                        </div>
+                        <div style={{ fontSize: 12.5, color: C.muted }}>{row.desc}</div>
+                      </div>
+                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                        <div style={{ fontFamily: heading, fontWeight: 600, fontSize: 20, color: C.muted }}>{row.score}</div>
+                        <div style={{ fontSize: 10, color: C.faint, fontFamily: mono }}>SCORE</div>
+                      </div>
+                      <button style={{ flexShrink: 0, background: 'transparent', color: C.text, fontWeight: 500, fontSize: 13, fontFamily: body, border: `1px solid ${C.border2}`, padding: '10px 18px', borderRadius: 8, cursor: 'pointer' }}>Select</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ METRICS ═════════════════════════════════════════════ */}
+      <section style={{ padding: '110px 0', borderBottom: `1px solid ${C.border}`, background: C.surface }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24 }}>
+            {[
+              { value: '<3s', label: 'to a ranked, explained shortlist', hi: true },
+              { value: '0', label: 'invalid matches recommended', hi: false },
+              { value: '100+', label: 'vehicles & drivers per query', hi: false },
+              { value: '<1m', label: 'request to confirmed booking', hi: false },
+            ].map((m, i) => (
+              <div key={m.label} style={{ textAlign: 'center', borderRight: i < 3 ? `1px solid ${C.border}` : undefined, padding: '0 12px' }}>
+                <div style={{ fontFamily: heading, fontWeight: 600, fontSize: 52, lineHeight: 1, color: m.hi ? C.accent : C.text, marginBottom: 12 }}>{m.value}</div>
+                <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.4 }}>{m.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══ FINAL CTA ═══════════════════════════════════════════ */}
+      <section id="cta" style={{ padding: '130px 0', position: 'relative', overflow: 'hidden', borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ position: 'absolute', bottom: -240, left: '50%', transform: 'translateX(-50%)', width: 800, height: 600, background: `radial-gradient(circle, ${C.accentDim}, transparent 68%)`, pointerEvents: 'none' }} />
+        <div style={{ maxWidth: 760, margin: '0 auto', padding: '0 32px', textAlign: 'center', position: 'relative' }}>
+          <h2 style={{ fontFamily: heading, fontWeight: 600, fontSize: 52, lineHeight: 1.04, letterSpacing: '-0.025em', margin: '0 0 20px' }}>
+            Give your dispatch desk<br />a co-pilot.
+          </h2>
+          <p style={{ fontSize: 18, lineHeight: 1.55, color: C.muted, margin: '0 0 34px' }}>
+            Seed your fleet, paste a request, and watch the shortlist come back in seconds. Free to start.
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
+            <Link to="/signup" style={{ background: C.accent, color: '#071019', fontWeight: 600, fontSize: 16, padding: '15px 30px', borderRadius: 9, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 9, boxShadow: `0 8px 26px ${C.accentDim}` }}>
+              Start free trial <span style={{ fontFamily: mono }}>→</span>
+            </Link>
+            <a href="#" style={{ border: `1px solid ${C.border2}`, color: C.text, fontWeight: 500, fontSize: 16, padding: '15px 28px', borderRadius: 9, textDecoration: 'none' }}>
+              Book a demo
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Keyframe animations */}
+      <style>{`
+        @keyframes ld-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.35;transform:scale(.8)} }
+        @keyframes ld-sweep { 0%{transform:translateX(-120%)} 100%{transform:translateX(320%)} }
+      `}</style>
     </div>
   );
 }

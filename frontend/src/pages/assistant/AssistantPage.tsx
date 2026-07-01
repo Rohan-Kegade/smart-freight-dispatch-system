@@ -16,7 +16,7 @@ const SUGGESTIONS = [
 const INITIAL_MESSAGE: Message = {
   id: '0',
   role: 'assistant',
-  content: 'Hi! I\'m your FreightDispatch AI assistant. I can answer questions about your company\'s policies, route restrictions, and compliance requirements. Ask me anything!',
+  content: 'Hi! I\'m your Lodestar AI assistant. I can answer questions about your company\'s policies, route restrictions, and compliance requirements. Ask me anything!',
   timestamp: new Date(),
 };
 

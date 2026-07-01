@@ -121,7 +121,7 @@ export default function AppShell() {
             <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
               <Truck className="h-4.5 w-4.5 text-primary-foreground" />
             </div>
-            {!collapsed && <span className="font-bold text-sm tracking-tight truncate">FreightDispatch</span>}
+            {!collapsed && <span className="font-bold text-sm tracking-tight truncate">Lodestar</span>}
           </Link>
         </div>
 

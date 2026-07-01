@@ -17,7 +17,7 @@ export default function TeamPage() {
     <div className="p-6 space-y-6 max-w-4xl mx-auto">
       <PageHeader
         title="Team"
-        description="Manage who has access to your FreightDispatch workspace."
+        description="Manage who has access to your Lodestar workspace."
         actions={
           <Button>
             <UserPlus className="h-4 w-4" /> Invite member

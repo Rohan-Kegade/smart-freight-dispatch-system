@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const STEPS = [
-  { id: 'welcome', title: 'Welcome to FreightDispatch', icon: Truck },
+  { id: 'welcome', title: 'Welcome to Lodestar', icon: Truck },
   { id: 'org', title: 'Set up your organisation', icon: Users },
   { id: 'done', title: "You're all set!", icon: CheckCircle },
 ];
@@ -48,7 +48,7 @@ export default function OnboardingWizard() {
                 <Truck className="h-7 w-7 text-primary" />
               </div>
               <CardTitle className="text-2xl">Welcome, {user?.name?.split(' ')[0]}!</CardTitle>
-              <CardDescription>Let's get your FreightDispatch workspace set up in 2 quick steps.</CardDescription>
+              <CardDescription>Let's get your Lodestar workspace set up in 2 quick steps.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <ul className="space-y-3 text-sm text-muted-foreground">
