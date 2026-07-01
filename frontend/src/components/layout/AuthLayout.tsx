@@ -1,77 +1,122 @@
 import { Link, Outlet } from 'react-router-dom';
-import { Truck, CheckCircle } from 'lucide-react';
 
-const FEATURES = [
-  'Natural language shipment intake — no forms',
-  'Ranked vehicle–driver matches with live ETAs',
-  'Role-based access for dispatchers and admins',
-];
+const C = {
+  bg: '#090d13',
+  surface: '#11171f',
+  border: 'rgba(255,255,255,.08)',
+  text: '#eaf0f6',
+  muted: '#8a97a6',
+  faint: '#5c6875',
+  accent: '#5aa2f0',
+  accentDim: 'rgba(90,162,240,0.14)',
+  accentSoft: 'rgba(90,162,240,0.22)',
+  success: '#4fca8b',
+};
+
+const mono = "'IBM Plex Mono', monospace";
+const heading = "'Space Grotesk', sans-serif";
 
 export default function AuthLayout() {
   return (
-    <div className="min-h-screen grid lg:grid-cols-[480px_1fr]">
-      {/* Left: brand panel */}
-      <div className="hidden lg:flex flex-col bg-sidebar text-sidebar-foreground px-10 py-12 relative overflow-hidden">
-        {/* subtle grid pattern */}
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage:
-              'linear-gradient(hsl(var(--sidebar-foreground)) 1px, transparent 1px), linear-gradient(to right, hsl(var(--sidebar-foreground)) 1px, transparent 1px)',
-            backgroundSize: '32px 32px',
-          }}
-        />
-        <Link to="/" className="relative flex items-center gap-2.5 z-10">
-          <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shrink-0">
-            <Truck className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <span className="font-bold text-lg tracking-tight">Lodestar</span>
+    <div style={{ display: 'flex', minHeight: '100vh', background: C.bg, color: C.text, fontFamily: "'IBM Plex Sans', system-ui, sans-serif" }}>
+
+      {/* ── Brand panel ──────────────────────────────────────── */}
+      <div
+        className="ld-brand-panel"
+        style={{
+          flex: '0 0 46%',
+          position: 'relative',
+          overflow: 'hidden',
+          borderRight: `1px solid ${C.border}`,
+          background: C.surface,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          padding: '44px 52px',
+          minWidth: 0,
+        }}
+      >
+        {/* Accent glow */}
+        <div style={{ position: 'absolute', top: -160, left: -100, width: 520, height: 520, background: `radial-gradient(circle, ${C.accentDim}, transparent 68%)`, pointerEvents: 'none' }} />
+        {/* Grid overlay */}
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          backgroundImage: 'linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px)',
+          backgroundSize: '54px 54px',
+          WebkitMaskImage: 'radial-gradient(ellipse 90% 80% at 30% 20%, #000, transparent 80%)',
+          maskImage: 'radial-gradient(ellipse 90% 80% at 30% 20%, #000, transparent 80%)',
+        }} />
+
+        {/* Logo */}
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 11, textDecoration: 'none', color: C.text, position: 'relative', zIndex: 2, width: 'fit-content' }}>
+          <span style={{ width: 28, height: 28, borderRadius: 8, background: C.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 4px 14px ${C.accentSoft}` }}>
+            <span style={{ width: 10, height: 10, background: '#071019', transform: 'rotate(45deg)', borderRadius: 1 }} />
+          </span>
+          <span style={{ fontFamily: heading, fontWeight: 600, fontSize: 19, letterSpacing: '-0.01em' }}>Lodestar</span>
         </Link>
 
-        <div className="relative z-10 flex-1 flex flex-col justify-center py-16">
-          <p className="text-xs font-semibold tracking-widest text-primary uppercase mb-4">AI-Assisted Freight Dispatch</p>
-          <h2 className="text-3xl font-bold leading-snug mb-4 text-sidebar-foreground">
-            Find the right vehicle in seconds, not minutes.
-          </h2>
-          <p className="text-sidebar-foreground/60 text-sm leading-relaxed mb-10">
-            A deterministic matching engine backed by AI — for freight teams
-            that can't afford mismatches.
+        {/* Center content */}
+        <div style={{ position: 'relative', zIndex: 2, maxWidth: 440 }}>
+          <h1 style={{ fontFamily: heading, fontWeight: 600, fontSize: 40, lineHeight: 1.08, letterSpacing: '-0.02em', margin: '0 0 18px' }}>
+            Dispatch, decided in seconds.
+          </h1>
+          <p style={{ fontSize: 16, lineHeight: 1.6, color: C.muted, margin: '0 0 30px' }}>
+            Type a request in plain language and get a ranked, explained shortlist of the right vehicle, driver and time slot — with no invalid matches, ever.
           </p>
-
-          <ul className="space-y-4">
-            {FEATURES.map(f => (
-              <li key={f} className="flex items-start gap-3">
-                <CheckCircle className="h-4.5 w-4.5 text-primary mt-0.5 shrink-0" />
-                <span className="text-sm text-sidebar-foreground/80 leading-snug">{f}</span>
-              </li>
-            ))}
-          </ul>
+          {/* Mini match card */}
+          <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: '14px 16px', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, width: '38%', height: 2, background: `linear-gradient(90deg, transparent, ${C.accent}, transparent)`, animation: 'lda-sweep 3.4s ease-in-out infinite' }} />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: mono, fontSize: 10.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: C.success }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.success }} />
+                Best match
+              </span>
+              <span style={{ fontFamily: heading, fontWeight: 600, fontSize: 16 }}>
+                94<span style={{ fontSize: 10, color: C.faint }}>/100</span>
+              </span>
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>TN-09 CG 4521 · Reefer 6t</div>
+            <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>R. Kumar · 12 km deadhead · on-time</div>
+          </div>
         </div>
 
-        {/* bottom testimonial */}
-        <div className="relative z-10 border-t border-sidebar-border pt-6">
-          <p className="text-sm text-sidebar-foreground/70 italic leading-relaxed">
-            "We cut dispatch decision time from 8 minutes to under 30 seconds."
-          </p>
-          <p className="text-xs text-sidebar-foreground/40 mt-2">— Logistics Manager, Mumbai</p>
+        {/* Trust badges */}
+        <div style={{ position: 'relative', zIndex: 2, display: 'flex', gap: 22, fontFamily: mono, fontSize: 11.5, color: C.faint }}>
+          <span>✓ Role-based access</span>
+          <span>✓ Deterministic core</span>
         </div>
       </div>
 
-      {/* Right: form */}
-      <div className="flex flex-col items-center justify-center px-4 py-12 bg-background">
-        {/* mobile logo only */}
-        <div className="lg:hidden mb-10">
-          <Link to="/" className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shrink-0">
-              <Truck className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-lg tracking-tight">Lodestar</span>
-          </Link>
-        </div>
-        <div className="w-full max-w-[420px]">
+      {/* ── Form panel ───────────────────────────────────────── */}
+      <div style={{ flex: '1 1 54%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 40px', minWidth: 0 }}>
+        <div style={{ width: '100%', maxWidth: 400 }}>
           <Outlet />
         </div>
       </div>
+
+      <style>{`
+        @keyframes lda-sweep { 0%{transform:translateX(-120%)} 100%{transform:translateX(320%)} }
+        @media (max-width: 768px) { .ld-brand-panel { display: none !important; } }
+        .lda-input {
+          width: 100%;
+          padding: 12px 14px;
+          border-radius: 9px;
+          border: 1px solid rgba(255,255,255,.08);
+          background: #11171f;
+          color: #eaf0f6;
+          font-size: 14.5px;
+          font-family: 'IBM Plex Sans', sans-serif;
+          outline: none;
+          transition: border-color .15s, box-shadow .15s;
+          box-sizing: border-box;
+        }
+        .lda-input:focus {
+          border-color: #5aa2f0;
+          box-shadow: 0 0 0 3px rgba(90,162,240,0.14);
+        }
+        .lda-input::placeholder { color: #5c6875; }
+        .lda-input-pw { padding-right: 62px; }
+      `}</style>
     </div>
   );
 }
