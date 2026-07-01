@@ -10,7 +10,6 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { PageHeader } from '@/components/shared/PageHeader';
 import { useToast } from '@/hooks/use-toast';
 
 const profileSchema = z.object({
@@ -56,9 +55,7 @@ export default function AccountSettings() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-2xl">
-      <PageHeader title="Account settings" description="Manage your personal profile and security." />
-
+    <div className="p-6 space-y-6 max-w-2xl mx-auto">
       {/* Avatar */}
       <Card>
         <CardHeader><CardTitle>Profile picture</CardTitle></CardHeader>

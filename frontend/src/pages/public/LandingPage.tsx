@@ -1,30 +1,14 @@
 import { Link } from 'react-router-dom';
-
-/* ─── Design tokens ─────────────────────────────────────────── */
-const C = {
-  bg: '#090d13',
-  surface: '#11171f',
-  surface2: '#18212c',
-  border: 'rgba(255,255,255,.08)',
-  border2: 'rgba(255,255,255,.15)',
-  text: '#eaf0f6',
-  muted: '#8a97a6',
-  faint: '#5c6875',
-  accent: '#5aa2f0',
-  accentDim: 'rgba(90,162,240,0.14)',
-  accentSoft: 'rgba(90,162,240,0.22)',
-  accentLine: 'rgba(90,162,240,0.45)',
-  success: '#4fca8b',
-  warn: '#e0a35e',
-};
+import { useTheme } from '@/context/ThemeContext';
 
 const mono = "'IBM Plex Mono', monospace";
-const heading = "'Space Grotesk', sans-serif";
-const body = "'IBM Plex Sans', system-ui, sans-serif";
+const heading = "'IBM Plex Mono', monospace";
+const body = "'IBM Plex Mono', monospace";
 
 /* ─── Sub-components ─────────────────────────────────────────── */
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
+  const { colors: C } = useTheme();
   return (
     <div style={{ fontFamily: mono, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.accent, marginBottom: 18 }}>
       {children}
@@ -43,6 +27,7 @@ function H2({ children, style }: { children: React.ReactNode; style?: React.CSSP
 /* ─── Component ─────────────────────────────────────────────── */
 
 export default function LandingPage() {
+  const { colors: C } = useTheme();
   return (
     <div style={{ background: C.bg, color: C.text, overflowX: 'hidden', fontFamily: body }}>
 
@@ -75,7 +60,7 @@ export default function LandingPage() {
               A dispatcher types a request in plain language. Lodestar parses it, runs a deterministic matching engine across your fleet, and returns a ranked, explained shortlist of vehicle + driver + time slot — no invalid matches, ever.
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 30 }}>
-              <Link to="/signup" style={{ background: C.accent, color: '#071019', fontWeight: 600, fontSize: 15, padding: '14px 26px', borderRadius: 9, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 9, boxShadow: `0 6px 22px ${C.accentDim}` }}>
+              <Link to="/signup" style={{ background: C.accent, color: C.accentText, fontWeight: 600, fontSize: 15, padding: '14px 26px', borderRadius: 9, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 9, boxShadow: `0 6px 22px ${C.accentDim}` }}>
                 Start free trial <span style={{ fontFamily: mono }}>→</span>
               </Link>
               <a href="#how" style={{ border: `1px solid ${C.border2}`, color: C.text, fontWeight: 500, fontSize: 15, padding: '14px 24px', borderRadius: 9, textDecoration: 'none' }}>
@@ -112,7 +97,7 @@ export default function LandingPage() {
                 <div style={{ position: 'absolute', top: 0, left: 0, width: '38%', height: 2, background: `linear-gradient(90deg, transparent, ${C.accent}, transparent)`, animation: 'ld-sweep 3.2s ease-in-out infinite' }} />
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                    <span style={{ fontFamily: heading, fontWeight: 700, fontSize: 13, width: 26, height: 26, borderRadius: 7, background: C.accent, color: '#071019', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>1</span>
+                    <span style={{ fontFamily: heading, fontWeight: 700, fontSize: 13, width: 26, height: 26, borderRadius: 7, background: C.accent, color: C.accentText, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>1</span>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: mono, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: C.success }}>
                       <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.success, animation: 'ld-pulse 1.8s ease-in-out infinite' }} />
                       Best match
@@ -423,7 +408,7 @@ export default function LandingPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {/* Best match row */}
                   <div style={{ border: `1px solid ${C.accentLine}`, background: `linear-gradient(180deg, ${C.accentDim}, transparent)`, borderRadius: 12, padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 18 }}>
-                    <span style={{ fontFamily: heading, fontWeight: 700, fontSize: 15, width: 30, height: 30, borderRadius: 8, background: C.accent, color: '#071019', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>1</span>
+                    <span style={{ fontFamily: heading, fontWeight: 700, fontSize: 15, width: 30, height: 30, borderRadius: 8, background: C.accent, color: C.accentText, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>1</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
                         <span style={{ fontWeight: 600, fontSize: 15 }}>TN-09 CG 4521</span>
@@ -435,7 +420,7 @@ export default function LandingPage() {
                       <div style={{ fontFamily: heading, fontWeight: 600, fontSize: 20 }}>94</div>
                       <div style={{ fontSize: 10, color: C.faint, fontFamily: mono }}>SCORE</div>
                     </div>
-                    <button style={{ flexShrink: 0, background: C.accent, color: '#071019', fontWeight: 600, fontSize: 13, fontFamily: body, border: 'none', padding: '10px 18px', borderRadius: 8, cursor: 'pointer' }}>Confirm</button>
+                    <button style={{ flexShrink: 0, background: C.accent, color: C.accentText, fontWeight: 600, fontSize: 13, fontFamily: body, border: 'none', padding: '10px 18px', borderRadius: 8, cursor: 'pointer' }}>Confirm</button>
                   </div>
                   {/* Other rows */}
                   {[
@@ -495,7 +480,7 @@ export default function LandingPage() {
             Seed your fleet, paste a request, and watch the shortlist come back in seconds. Free to start.
           </p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
-            <Link to="/signup" style={{ background: C.accent, color: '#071019', fontWeight: 600, fontSize: 16, padding: '15px 30px', borderRadius: 9, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 9, boxShadow: `0 8px 26px ${C.accentDim}` }}>
+            <Link to="/signup" style={{ background: C.accent, color: C.accentText, fontWeight: 600, fontSize: 16, padding: '15px 30px', borderRadius: 9, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 9, boxShadow: `0 8px 26px ${C.accentDim}` }}>
               Start free trial <span style={{ fontFamily: mono }}>→</span>
             </Link>
             <a href="#" style={{ border: `1px solid ${C.border2}`, color: C.text, fontWeight: 500, fontSize: 16, padding: '15px 28px', borderRadius: 9, textDecoration: 'none' }}>

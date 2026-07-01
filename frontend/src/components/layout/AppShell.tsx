@@ -1,72 +1,45 @@
 import { useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Bell, LogOut, UserCircle, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-
-/* ─── Design tokens ─────────────────────────────────────────── */
-const C = {
-  bg: '#090d13',
-  surface: '#11171f',
-  surface2: '#18212c',
-  surface3: '#232f3c',
-  border: 'rgba(255,255,255,.08)',
-  text: '#eaf0f6',
-  muted: '#8a97a6',
-  faint: '#5c6875',
-  accent: '#5aa2f0',
-  accentDim: 'rgba(90,162,240,0.14)',
-  accentLine: 'rgba(90,162,240,0.45)',
-};
+  Bell, LogOut, Settings, ChevronLeft, ChevronRight, Sun, Moon,
+  LayoutDashboard, BookOpen, Sparkles, Truck, Users, Database, type LucideIcon,
+} from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
+import { hexToRgba, navColors, type ThemePalette, type NavColorKey } from '@/lib/theme';
+import type { Dictionary } from '@/lib/i18n';
 
 const mono = "'IBM Plex Mono', monospace";
-const heading = "'Space Grotesk', sans-serif";
-const body = "'IBM Plex Sans', system-ui, sans-serif";
+const heading = "'IBM Plex Mono', monospace";
+const body = "'IBM Plex Mono', monospace";
 
 /* ─── Nav configuration ──────────────────────────────────────── */
-interface NavItem { label: string; href: string; end?: boolean; }
+interface NavItem { navKey: keyof Dictionary['nav']; href: string; end?: boolean; icon: LucideIcon; colorKey: NavColorKey; }
 
 const dispatcherNav: NavItem[] = [
-  { label: 'Dispatch', href: '/app/dashboard', end: true },
-  { label: 'Bookings', href: '/app/bookings' },
-  { label: 'Assistant', href: '/app/assistant', end: true },
+  { navKey: 'dispatch', href: '/app/dashboard', end: true, icon: LayoutDashboard, colorKey: 'blue' },
+  { navKey: 'bookings', href: '/app/bookings', icon: BookOpen, colorKey: 'purple' },
+  { navKey: 'assistant', href: '/app/assistant', end: true, icon: Sparkles, colorKey: 'teal' },
 ];
 
 const adminNav: NavItem[] = [
-  { label: 'Overview', href: '/app/admin/dashboard', end: true },
-  { label: 'Fleet', href: '/app/admin/vehicles' },
-  { label: 'Drivers', href: '/app/admin/drivers' },
-  { label: 'Bookings', href: '/app/bookings' },
-  { label: 'Knowledge base', href: '/app/admin/documents', end: true },
+  { navKey: 'overview', href: '/app/admin/dashboard', end: true, icon: LayoutDashboard, colorKey: 'blue' },
+  { navKey: 'fleet', href: '/app/admin/vehicles', icon: Truck, colorKey: 'orange' },
+  { navKey: 'drivers', href: '/app/admin/drivers', icon: Users, colorKey: 'green' },
+  { navKey: 'bookings', href: '/app/bookings', icon: BookOpen, colorKey: 'purple' },
+  { navKey: 'knowledgeBase', href: '/app/admin/documents', end: true, icon: Database, colorKey: 'pink' },
 ];
 
-const PAGE_TITLES: Record<string, [string, string]> = {
-  '/app/dashboard':         ['Dispatch', 'Capture a request and confirm the best match'],
-  '/app/request/new':       ['New Request', 'Describe a shipment in plain language'],
-  '/app/bookings':          ['Bookings', 'All scheduled and ad-hoc jobs'],
-  '/app/assistant':         ['Knowledge Assistant', 'Grounded answers from your policy documents'],
-  '/app/admin/dashboard':   ['Overview', 'Fleet at a glance'],
-  '/app/admin/vehicles':    ['Fleet', 'Vehicles — the source of truth'],
-  '/app/admin/drivers':     ['Drivers', 'Roster, licences and working hours'],
-  '/app/admin/team':        ['Team', 'Workspace members and roles'],
-  '/app/admin/documents':   ['Knowledge Base', 'Documents powering the assistant'],
-  '/app/settings/account':  ['Account', 'Your profile and preferences'],
-  '/app/settings/org':      ['Organisation', 'Workspace settings'],
-  '/app/settings/billing':  ['Billing', 'Plan and payment'],
-  '/app/notifications':     ['Notifications', ''],
-};
-
-function getHeader(pathname: string): [string, string] {
-  if (pathname.startsWith('/app/bookings/')) return ['Booking detail', ''];
-  if (pathname.includes('/matches')) return ['Match results', 'Ranked vehicle + driver pairs'];
-  return PAGE_TITLES[pathname] ?? ['', ''];
+function getHeader(pathname: string, dict: Dictionary): [string, string] {
+  if (pathname.startsWith('/app/bookings/')) return [dict.special.bookingDetail, ''];
+  if (pathname.includes('/matches')) return dict.special.matchResults;
+  return dict.pages[pathname] ?? ['', ''];
 }
 
 /* ─── Sidebar link ───────────────────────────────────────────── */
-function SidebarLink({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
+function SidebarLink({ item, label, collapsed, C, theme }: { item: NavItem; label: string; collapsed: boolean; C: ThemePalette; theme: 'dark' | 'light' }) {
+  const nc = navColors[theme][item.colorKey];
   return (
     <NavLink
       to={item.href}
@@ -78,9 +51,9 @@ function SidebarLink({ item, collapsed }: { item: NavItem; collapsed: boolean })
         padding: collapsed ? '10px 0' : '10px 12px',
         borderRadius: 9,
         fontSize: 14,
-        border: `1px solid ${isActive ? C.accentLine : 'transparent'}`,
-        background: isActive ? C.accentDim : 'transparent',
-        color: isActive ? C.accent : C.muted,
+        border: `1px solid ${isActive ? nc.line : 'transparent'}`,
+        background: isActive ? nc.dim : 'transparent',
+        color: isActive ? nc.color : C.muted,
         fontWeight: isActive ? 500 : 400,
         textDecoration: 'none',
         fontFamily: body,
@@ -89,12 +62,12 @@ function SidebarLink({ item, collapsed }: { item: NavItem; collapsed: boolean })
         justifyContent: collapsed ? 'center' : 'flex-start',
         cursor: 'pointer',
       })}
-      title={collapsed ? item.label : undefined}
+      title={collapsed ? label : undefined}
     >
       {({ isActive }) => (
         <>
-          <span style={{ width: 7, height: 7, borderRadius: '50%', background: isActive ? C.accent : C.faint, flexShrink: 0 }} />
-          {!collapsed && <span>{item.label}</span>}
+          <item.icon style={{ width: 15, height: 15, flexShrink: 0, color: nc.color, opacity: isActive ? 1 : 0.7 }} />
+          {!collapsed && <span>{label}</span>}
         </>
       )}
     </NavLink>
@@ -104,6 +77,8 @@ function SidebarLink({ item, collapsed }: { item: NavItem; collapsed: boolean })
 /* ─── Component ─────────────────────────────────────────────── */
 export default function AppShell() {
   const { user, logout } = useAuth();
+  const { theme, colors: C, toggleTheme } = useTheme();
+  const { dict } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
@@ -111,8 +86,8 @@ export default function AppShell() {
 
   const navItems = user?.role === 'admin' ? adminNav : dispatcherNav;
   const initials = user?.name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2) ?? '??';
-  const roleLabel = user?.role === 'admin' ? 'Fleet Admin' : 'Dispatcher';
-  const [pageTitle, pageSub] = getHeader(location.pathname);
+  const roleLabel = user?.role === 'admin' ? dict.sidebar.adminRole : dict.sidebar.dispatcherRole;
+  const [pageTitle, pageSub] = getHeader(location.pathname, dict);
 
   function handleLogout() { logout(); navigate('/login'); }
 
@@ -132,30 +107,65 @@ export default function AppShell() {
         overflow: 'hidden',
       }}>
         {/* Brand */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: collapsed ? '4px 0 20px' : '4px 8px 6px', justifyContent: collapsed ? 'center' : 'flex-start' }}>
+        <div style={{
+          display: 'flex',
+          flexDirection: collapsed ? 'column' : 'row',
+          alignItems: 'center',
+          justifyContent: collapsed ? 'center' : 'space-between',
+          gap: collapsed ? 10 : 0,
+          padding: collapsed ? '4px 0 20px' : '4px 4px 6px',
+        }}>
           <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: C.text }}>
             <span style={{ width: 26, height: 26, borderRadius: 7, background: C.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <span style={{ width: 9, height: 9, background: '#071019', transform: 'rotate(45deg)', borderRadius: 1 }} />
             </span>
             {!collapsed && <span style={{ fontFamily: heading, fontWeight: 600, fontSize: 17, letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>Lodestar</span>}
           </Link>
+          <button
+            onClick={() => setCollapsed(c => !c)}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', cursor: 'pointer', color: C.faint, padding: 6, borderRadius: 6, flexShrink: 0 }}
+            onMouseEnter={e => (e.currentTarget.style.color = C.text)}
+            onMouseLeave={e => (e.currentTarget.style.color = C.faint)}
+          >
+            {collapsed ? <ChevronRight style={{ width: 15, height: 15 }} /> : <ChevronLeft style={{ width: 15, height: 15 }} />}
+          </button>
         </div>
 
         {/* Role label */}
         {!collapsed && (
           <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.faint, padding: '0 8px 14px' }}>
-            {roleLabel} workspace
+            {roleLabel} {dict.sidebar.workspace}
           </div>
         )}
 
         {/* Nav */}
         <nav style={{ display: 'flex', flexDirection: 'column', gap: 3, flex: 1 }}>
-          {navItems.map(item => <SidebarLink key={item.href} item={item} collapsed={collapsed} />)}
+          {navItems.map(item => (
+            <SidebarLink key={item.href} item={item} label={dict.nav[item.navKey]} collapsed={collapsed} C={C} theme={theme} />
+          ))}
+        </nav>
 
-          <div style={{ borderTop: `1px solid ${C.border}`, margin: '10px 0' }} />
+        {/* User section */}
+        <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: `1px solid ${C.border}` }}>
+          <button
+            onClick={() => navigate('/app/settings/account')}
+            title={collapsed ? user?.name : undefined}
+            style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', padding: '6px 4px', borderRadius: 9, justifyContent: collapsed ? 'center' : 'flex-start' }}
+          >
+            <span style={{ width: 34, height: 34, borderRadius: 9, background: C.surface3, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: heading, fontWeight: 600, fontSize: 13, color: C.text, flexShrink: 0 }}>
+              {initials}
+            </span>
+            {!collapsed && (
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 500, color: C.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name}</div>
+                <div style={{ fontSize: 11.5, color: C.faint }}>{roleLabel}</div>
+              </div>
+            )}
+          </button>
 
           <NavLink
-            to="/app/settings/account"
+            to="/app/settings"
             style={({ isActive }) => ({
               display: 'flex', alignItems: 'center', gap: 11,
               padding: collapsed ? '10px 0' : '10px 12px',
@@ -166,61 +176,38 @@ export default function AppShell() {
               fontWeight: isActive ? 500 : 400,
               textDecoration: 'none', fontFamily: body, transition: 'all .15s',
               width: '100%', justifyContent: collapsed ? 'center' : 'flex-start',
+              marginTop: 4,
             })}
-            title={collapsed ? 'Settings' : undefined}
+            title={collapsed ? dict.sidebar.settings : undefined}
           >
             {({ isActive }) => (
               <>
                 <Settings style={{ width: 14, height: 14, flexShrink: 0, color: isActive ? C.accent : C.faint }} />
-                {!collapsed && <span>Settings</span>}
+                {!collapsed && <span>{dict.sidebar.settings}</span>}
               </>
             )}
           </NavLink>
-        </nav>
 
-        {/* User section */}
-        <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: `1px solid ${C.border}` }}>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', padding: '6px 4px', borderRadius: 9, justifyContent: collapsed ? 'center' : 'flex-start' }}>
-                <span style={{ width: 34, height: 34, borderRadius: 9, background: C.surface3, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: heading, fontWeight: 600, fontSize: 13, color: C.text, flexShrink: 0 }}>
-                  {initials}
-                </span>
-                {!collapsed && (
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 13.5, fontWeight: 500, color: C.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name}</div>
-                    <div style={{ fontSize: 11.5, color: C.faint }}>{roleLabel}</div>
-                  </div>
-                )}
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="right" align="end" className="w-52">
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-0.5">
-                  <p className="text-sm font-medium">{user?.name}</p>
-                  <p className="text-xs text-muted-foreground">{user?.email}</p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/app/settings/account')}>
-                <UserCircle className="h-4 w-4" /> Account settings
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
-                <LogOut className="h-4 w-4" /> Log out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Collapse toggle */}
           <button
-            onClick={() => setCollapsed(c => !c)}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: C.faint, fontSize: 12, fontFamily: mono, padding: '8px 4px', borderRadius: 6, marginTop: 6, justifyContent: collapsed ? 'center' : 'flex-start' }}
+            onClick={handleLogout}
+            title={collapsed ? dict.sidebar.logout : undefined}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 11,
+              padding: collapsed ? '10px 0' : '10px 12px',
+              borderRadius: 9, fontSize: 14,
+              border: '1px solid transparent',
+              background: 'transparent',
+              color: C.muted,
+              fontWeight: 400,
+              fontFamily: body, transition: 'all .15s',
+              width: '100%', justifyContent: collapsed ? 'center' : 'flex-start',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.color = '#ef4444')}
+            onMouseLeave={e => (e.currentTarget.style.color = C.muted)}
           >
-            {collapsed
-              ? <ChevronRight style={{ width: 14, height: 14 }} />
-              : <><ChevronLeft style={{ width: 14, height: 14 }} /><span>Collapse</span></>
-            }
+            <LogOut style={{ width: 14, height: 14, flexShrink: 0 }} />
+            {!collapsed && <span>{dict.sidebar.logout}</span>}
           </button>
         </div>
       </aside>
@@ -237,7 +224,7 @@ export default function AppShell() {
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0 28px',
-          background: 'rgba(9,13,19,0.7)',
+          background: hexToRgba(C.bg, 0.7),
           backdropFilter: 'blur(10px)',
           WebkitBackdropFilter: 'blur(10px)',
         }}>
@@ -249,7 +236,16 @@ export default function AppShell() {
               <div style={{ fontSize: 12.5, color: C.muted, marginTop: 2 }}>{pageSub}</div>
             )}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              onClick={toggleTheme}
+              title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: C.muted, padding: 6, borderRadius: 8 }}
+              onMouseEnter={e => (e.currentTarget.style.color = C.text)}
+              onMouseLeave={e => (e.currentTarget.style.color = C.muted)}
+            >
+              {theme === 'dark' ? <Sun style={{ width: 18, height: 18 }} /> : <Moon style={{ width: 18, height: 18 }} />}
+            </button>
             <button
               onClick={() => navigate('/app/notifications')}
               style={{ position: 'relative', background: 'transparent', border: 'none', cursor: 'pointer', color: C.muted, padding: 6, borderRadius: 8 }}

@@ -40,6 +40,7 @@ import AccountSettings from '@/pages/settings/AccountSettings';
 import OrgSettings from '@/pages/settings/OrgSettings';
 import BillingPage from '@/pages/settings/BillingPage';
 import NotificationPreferences from '@/pages/settings/NotificationPreferences';
+import LanguageSettings from '@/pages/settings/LanguageSettings';
 
 // RAG Assistant
 import AssistantPage from '@/pages/assistant/AssistantPage';
@@ -120,6 +121,7 @@ export default function App() {
           <Route path="org" element={<OrgSettings />} />
           <Route path="billing" element={<BillingPage />} />
           <Route path="notifications" element={<NotificationPreferences />} />
+          <Route path="language" element={<LanguageSettings />} />
         </Route>
       </Route>
 

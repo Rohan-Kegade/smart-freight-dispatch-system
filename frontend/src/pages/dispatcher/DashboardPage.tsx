@@ -3,33 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { bookingsApi, fleetApi } from '@/api';
 import type { Booking, Vehicle, Driver } from '@/types';
 import { StatusBadge } from '@/components/shared/StatusBadge';
+import { Button } from '@/components/ui/button';
 import { formatDate, formatCurrency } from '@/lib/utils';
-import { useAuth } from '@/context/AuthContext';
-
-const C = {
-  bg: '#090d13',
-  surface: '#11171f',
-  surface2: '#18212c',
-  surface3: '#232f3c',
-  border: 'rgba(255,255,255,.08)',
-  text: '#eaf0f6',
-  muted: '#8a97a6',
-  faint: '#5c6875',
-  accent: '#5aa2f0',
-  accentDim: 'rgba(90,162,240,0.14)',
-  accentLine: 'rgba(90,162,240,0.45)',
-  success: '#4fca8b',
-  successDim: 'rgba(79,202,139,0.15)',
-  warn: '#e0a35e',
-  warnDim: 'rgba(224,163,94,0.15)',
-};
+import { useTheme } from '@/context/ThemeContext';
 
 const mono = "'IBM Plex Mono', monospace";
-const heading = "'Space Grotesk', sans-serif";
-const body = "'IBM Plex Sans', system-ui, sans-serif";
+const heading = "'IBM Plex Mono', monospace";
+const body = "'IBM Plex Mono', monospace";
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { colors: C } = useTheme();
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -55,10 +38,6 @@ export default function DashboardPage() {
   const driversOnDuty = drivers.filter(d => !d.on_leave_until).length;
   const recent = bookings.slice(0, 6);
 
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-  const firstName = user?.name?.split(' ')[0] ?? 'there';
-
   const stats = [
     { label: 'Active bookings', value: loading ? '—' : String(activeBookings), color: C.accent, dim: C.accentDim },
     { label: 'Confirmed today', value: loading ? '—' : String(confirmedToday), color: C.success, dim: C.successDim },
@@ -67,26 +46,17 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div style={{ padding: '32px 36px', maxWidth: 960, margin: '0 auto', fontFamily: body, color: C.text }}>
+    <div style={{ padding: 24, maxWidth: 1400, margin: '0 auto', fontFamily: body, color: C.text }}>
 
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 30 }}>
-        <div>
-          <h1 style={{ fontFamily: heading, fontWeight: 600, fontSize: 24, letterSpacing: '-0.01em', margin: '0 0 5px', color: C.text }}>
-            {greeting}, {firstName}
-          </h1>
-          <p style={{ fontSize: 14, color: C.muted, margin: 0 }}>Here's what's happening with your dispatches today.</p>
-        </div>
-        <button
-          onClick={() => navigate('/app/request/new')}
-          style={{ background: C.accent, color: '#071019', border: 'none', borderRadius: 9, padding: '10px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: body, flexShrink: 0, boxShadow: '0 4px 16px rgba(90,162,240,0.28)' }}
-        >
+      {/* Actions */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', marginBottom: 24 }}>
+        <Button onClick={() => navigate('/app/request/new')} style={{ background: C.accent, color: C.accentText, fontWeight: 600 }}>
           + New request
-        </button>
+        </Button>
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 28 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 24 }}>
         {stats.map(s => (
           <div key={s.label} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: '18px 20px' }}>
             <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.faint, marginBottom: 10 }}>{s.label}</div>
@@ -130,7 +100,7 @@ export default function DashboardPage() {
               <div style={{ fontSize: 14, color: C.muted, marginBottom: 16 }}>No bookings yet</div>
               <button
                 onClick={() => navigate('/app/request/new')}
-                style={{ background: C.accent, color: '#071019', border: 'none', borderRadius: 8, padding: '9px 18px', fontSize: 13.5, fontWeight: 600, cursor: 'pointer', fontFamily: body }}
+                style={{ background: C.accent, color: C.accentText, border: 'none', borderRadius: 8, padding: '9px 18px', fontSize: 13.5, fontWeight: 600, cursor: 'pointer', fontFamily: body }}
               >
                 Create first dispatch
               </button>
@@ -178,8 +148,8 @@ export default function DashboardPage() {
             onClick={() => navigate('/app/request/new')}
             style={{
               width: '100%', padding: '20px', background: C.accent, border: 'none', borderRadius: 14,
-              cursor: 'pointer', textAlign: 'left', color: '#071019', fontFamily: body,
-              boxShadow: '0 8px 28px rgba(90,162,240,0.22)',
+              cursor: 'pointer', textAlign: 'left', color: C.accentText, fontFamily: body,
+              boxShadow: `0 8px 28px ${C.accentSoft}`,
             }}
           >
             <div style={{ fontFamily: heading, fontWeight: 700, fontSize: 16, marginBottom: 5 }}>New dispatch</div>

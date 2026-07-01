@@ -1,24 +1,14 @@
 import { Link, Outlet } from 'react-router-dom';
-
-const C = {
-  bg: '#090d13',
-  surface: '#11171f',
-  border: 'rgba(255,255,255,.08)',
-  text: '#eaf0f6',
-  muted: '#8a97a6',
-  faint: '#5c6875',
-  accent: '#5aa2f0',
-  accentDim: 'rgba(90,162,240,0.14)',
-  accentSoft: 'rgba(90,162,240,0.22)',
-  success: '#4fca8b',
-};
+import { useTheme } from '@/context/ThemeContext';
 
 const mono = "'IBM Plex Mono', monospace";
-const heading = "'Space Grotesk', sans-serif";
+const heading = "'IBM Plex Mono', monospace";
 
 export default function AuthLayout() {
+  const { colors: C } = useTheme();
+
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: C.bg, color: C.text, fontFamily: "'IBM Plex Sans', system-ui, sans-serif" }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: C.bg, color: C.text, fontFamily: "'IBM Plex Mono', monospace" }}>
 
       {/* ── Brand panel ──────────────────────────────────────── */}
       <div
@@ -101,20 +91,20 @@ export default function AuthLayout() {
           width: 100%;
           padding: 12px 14px;
           border-radius: 9px;
-          border: 1px solid rgba(255,255,255,.08);
-          background: #11171f;
-          color: #eaf0f6;
+          border: 1px solid ${C.border};
+          background: ${C.surface};
+          color: ${C.text};
           font-size: 14.5px;
-          font-family: 'IBM Plex Sans', sans-serif;
+          font-family: 'IBM Plex Mono', monospace;
           outline: none;
           transition: border-color .15s, box-shadow .15s;
           box-sizing: border-box;
         }
         .lda-input:focus {
-          border-color: #5aa2f0;
-          box-shadow: 0 0 0 3px rgba(90,162,240,0.14);
+          border-color: ${C.accent};
+          box-shadow: 0 0 0 3px ${C.accentDim};
         }
-        .lda-input::placeholder { color: #5c6875; }
+        .lda-input::placeholder { color: ${C.faint}; }
         .lda-input-pw { padding-right: 62px; }
       `}</style>
     </div>

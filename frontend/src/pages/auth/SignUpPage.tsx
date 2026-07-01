@@ -4,23 +4,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Loader2 } from 'lucide-react';
-
-const C = {
-  surface: '#11171f',
-  border: 'rgba(255,255,255,.08)',
-  border2: 'rgba(255,255,255,.15)',
-  text: '#eaf0f6',
-  muted: '#8a97a6',
-  faint: '#5c6875',
-  accent: '#5aa2f0',
-  accentDim: 'rgba(90,162,240,0.14)',
-  accentLine: 'rgba(90,162,240,0.45)',
-  accentSoft: 'rgba(90,162,240,0.22)',
-};
+import { useTheme } from '@/context/ThemeContext';
 
 const mono = "'IBM Plex Mono', monospace";
-const heading = "'Space Grotesk', sans-serif";
-const body = "'IBM Plex Sans', sans-serif";
+const heading = "'IBM Plex Mono', monospace";
+const body = "'IBM Plex Mono', monospace";
 
 const schema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -31,6 +19,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function SignUpPage() {
+  const { colors: C } = useTheme();
   const [showPw, setShowPw] = useState(false);
   const [role, setRole] = useState<'dispatcher' | 'admin'>('dispatcher');
 
@@ -153,7 +142,7 @@ export default function SignUpPage() {
         <button
           type="submit"
           disabled={isSubmitting}
-          style={{ width: '100%', marginTop: 4, padding: 13, borderRadius: 9, border: 'none', background: C.accent, color: '#071019', fontSize: 15, fontWeight: 600, fontFamily: body, cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: `0 6px 20px ${C.accentDim}` }}
+          style={{ width: '100%', marginTop: 4, padding: 13, borderRadius: 9, border: 'none', background: C.accent, color: C.accentText, fontSize: 15, fontWeight: 600, fontFamily: body, cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: `0 6px 20px ${C.accentDim}` }}
         >
           {isSubmitting && <Loader2 className="animate-spin" style={{ width: 16, height: 16 }} />}
           Create account

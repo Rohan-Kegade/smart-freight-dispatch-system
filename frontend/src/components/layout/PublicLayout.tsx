@@ -1,32 +1,24 @@
 import { Link, Outlet } from 'react-router-dom';
-
-const accent = '#5aa2f0';
-const bg = '#090d13';
-const surface = '#11171f';
-const border = 'rgba(255,255,255,.08)';
-const border2 = 'rgba(255,255,255,.15)';
-const textColor = '#eaf0f6';
-const muted = '#8a97a6';
-const faint = '#5c6875';
-const accentDim = 'rgba(90,162,240,0.14)';
-const accentSoft = 'rgba(90,162,240,0.22)';
+import { useTheme } from '@/context/ThemeContext';
+import { hexToRgba } from '@/lib/theme';
 
 const mono = "'IBM Plex Mono', monospace";
-const heading = "'Space Grotesk', sans-serif";
-const bodyFont = "'IBM Plex Sans', system-ui, sans-serif";
+const heading = "'IBM Plex Mono', monospace";
+const bodyFont = "'IBM Plex Mono', monospace";
 
 function LogoIcon({ size = 26 }: { size?: number }) {
+  const { colors: C } = useTheme();
   return (
     <span
       style={{
         width: size,
         height: size,
         borderRadius: 7,
-        background: accent,
+        background: C.accent,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        boxShadow: `0 4px 14px ${accentSoft}`,
+        boxShadow: `0 4px 14px ${C.accentSoft}`,
         flexShrink: 0,
       }}
     >
@@ -34,7 +26,7 @@ function LogoIcon({ size = 26 }: { size?: number }) {
         style={{
           width: size * 0.346,
           height: size * 0.346,
-          background: '#071019',
+          background: C.accentText,
           transform: 'rotate(45deg)',
           borderRadius: 1,
         }}
@@ -58,14 +50,16 @@ const NAV_LINKS = [
 ];
 
 export default function PublicLayout() {
+  const { colors: C } = useTheme();
+
   return (
     <div
       style={{
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        background: bg,
-        color: textColor,
+        background: C.bg,
+        color: C.text,
         fontFamily: bodyFont,
       }}
     >
@@ -75,10 +69,10 @@ export default function PublicLayout() {
           position: 'sticky',
           top: 0,
           zIndex: 60,
-          background: 'rgba(9,13,19,0.82)',
+          background: hexToRgba(C.bg, 0.82),
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          borderBottom: `1px solid ${border}`,
+          borderBottom: `1px solid ${C.border}`,
         }}
       >
         <div
@@ -96,7 +90,7 @@ export default function PublicLayout() {
           {/* Brand */}
           <Link
             to="/"
-            style={{ display: 'flex', alignItems: 'center', gap: 11, textDecoration: 'none', color: textColor }}
+            style={{ display: 'flex', alignItems: 'center', gap: 11, textDecoration: 'none', color: C.text }}
           >
             <LogoIcon size={26} />
             <span style={{ fontFamily: heading, fontWeight: 600, fontSize: 18, letterSpacing: '-0.01em' }}>
@@ -110,7 +104,7 @@ export default function PublicLayout() {
               <a
                 key={l.label}
                 href={l.href}
-                style={{ color: muted, textDecoration: 'none', fontSize: 14, transition: 'color .15s' }}
+                style={{ color: C.muted, textDecoration: 'none', fontSize: 14, transition: 'color .15s' }}
               >
                 {l.label}
               </a>
@@ -121,21 +115,21 @@ export default function PublicLayout() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <Link
               to="/login"
-              style={{ color: textColor, textDecoration: 'none', fontSize: 14, fontWeight: 500 }}
+              style={{ color: C.text, textDecoration: 'none', fontSize: 14, fontWeight: 500 }}
             >
               Log in
             </Link>
             <Link
               to="/signup"
               style={{
-                background: accent,
-                color: '#071019',
+                background: C.accent,
+                color: C.accentText,
                 fontWeight: 600,
                 fontSize: 14,
                 padding: '10px 18px',
                 borderRadius: 8,
                 textDecoration: 'none',
-                boxShadow: `0 4px 16px ${accentDim}`,
+                boxShadow: `0 4px 16px ${C.accentDim}`,
               }}
             >
               Start free trial
@@ -150,7 +144,7 @@ export default function PublicLayout() {
       </main>
 
       {/* ══ FOOTER ════════════════════════════════════════════ */}
-      <footer style={{ padding: '44px 0', borderTop: `1px solid ${border}`, background: bg }}>
+      <footer style={{ padding: '44px 0', borderTop: `1px solid ${C.border}`, background: C.bg }}>
         <div
           style={{
             maxWidth: 1200,
@@ -165,24 +159,24 @@ export default function PublicLayout() {
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
             <LogoIcon size={24} />
-            <span style={{ fontFamily: heading, fontWeight: 600, fontSize: 16, color: textColor }}>Lodestar</span>
+            <span style={{ fontFamily: heading, fontWeight: 600, fontSize: 16, color: C.text }}>Lodestar</span>
           </div>
           <div style={{ display: 'flex', gap: 26, fontSize: 13.5 }}>
             {FOOTER_LINKS.map(l => (
-              <a key={l.label} href={l.href} style={{ color: muted, textDecoration: 'none' }}>
+              <a key={l.label} href={l.href} style={{ color: C.muted, textDecoration: 'none' }}>
                 {l.label}
               </a>
             ))}
           </div>
-          <div style={{ fontFamily: mono, fontSize: 12, color: faint }}>
+          <div style={{ fontFamily: mono, fontSize: 12, color: C.faint }}>
             © 2026 Lodestar Freight Systems
           </div>
         </div>
       </footer>
 
       <style>{`
-        header a:hover { color: ${textColor} !important; }
-        footer a:hover { color: ${textColor} !important; }
+        header a:hover { color: ${C.text} !important; }
+        footer a:hover { color: ${C.text} !important; }
         header nav a { transition: color .15s; }
       `}</style>
     </div>

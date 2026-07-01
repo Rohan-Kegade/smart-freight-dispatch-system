@@ -74,11 +74,8 @@ export default function BookingDetailPage() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-xl font-bold">Booking detail</h1>
-            <StatusBadge status={booking.status} />
-          </div>
-          <p className="text-sm text-muted-foreground">{booking.pickup_location} → {booking.drop_location}</p>
+          <StatusBadge status={booking.status} />
+          <p className="text-sm text-muted-foreground mt-1">{booking.pickup_location} → {booking.drop_location}</p>
         </div>
       </div>
 

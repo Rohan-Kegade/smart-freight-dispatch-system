@@ -4,34 +4,18 @@ import { fleetApi, bookingsApi } from '@/api';
 import type { Vehicle, Driver, Booking } from '@/types';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { formatDate, formatCurrency } from '@/lib/utils';
-
-const C = {
-  bg: '#090d13',
-  surface: '#11171f',
-  surface2: '#18212c',
-  surface3: '#232f3c',
-  border: 'rgba(255,255,255,.08)',
-  text: '#eaf0f6',
-  muted: '#8a97a6',
-  faint: '#5c6875',
-  accent: '#5aa2f0',
-  accentDim: 'rgba(90,162,240,0.14)',
-  accentLine: 'rgba(90,162,240,0.45)',
-  success: '#4fca8b',
-  successDim: 'rgba(79,202,139,0.15)',
-  warn: '#e0a35e',
-  warnDim: 'rgba(224,163,94,0.15)',
-};
+import { useTheme } from '@/context/ThemeContext';
 
 const mono = "'IBM Plex Mono', monospace";
-const heading = "'Space Grotesk', sans-serif";
-const body = "'IBM Plex Sans', system-ui, sans-serif";
+const heading = "'IBM Plex Mono', monospace";
+const body = "'IBM Plex Mono', monospace";
 
-function Skeleton({ w = '100%', h = 20 }: { w?: string | number; h?: number }) {
-  return <div style={{ width: w, height: h, borderRadius: 6, background: C.surface3, opacity: 0.7 }} />;
+function Skeleton({ w = '100%', h = 20, bg }: { w?: string | number; h?: number; bg: string }) {
+  return <div style={{ width: w, height: h, borderRadius: 6, background: bg, opacity: 0.7 }} />;
 }
 
 export default function AdminDashboard() {
+  const { colors: C } = useTheme();
   const navigate = useNavigate();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -71,35 +55,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div style={{ padding: '32px 36px', maxWidth: 1100, margin: '0 auto', fontFamily: body, color: C.text }}>
-
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 30 }}>
-        <div>
-          <h1 style={{ fontFamily: heading, fontWeight: 600, fontSize: 24, letterSpacing: '-0.01em', margin: '0 0 5px', color: C.text }}>
-            Fleet at a glance
-          </h1>
-          <p style={{ fontSize: 14, color: C.muted, margin: 0 }}>Live utilisation and activity across your workspace.</p>
-        </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button
-            onClick={() => navigate('/app/admin/vehicles')}
-            style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 9, padding: '9px 16px', fontSize: 13.5, color: C.muted, cursor: 'pointer', fontFamily: body, fontWeight: 500 }}
-            onMouseEnter={e => (e.currentTarget.style.borderColor = C.accentLine)}
-            onMouseLeave={e => (e.currentTarget.style.borderColor = C.border)}
-          >
-            + Vehicle
-          </button>
-          <button
-            onClick={() => navigate('/app/admin/drivers')}
-            style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 9, padding: '9px 16px', fontSize: 13.5, color: C.muted, cursor: 'pointer', fontFamily: body, fontWeight: 500 }}
-            onMouseEnter={e => (e.currentTarget.style.borderColor = C.accentLine)}
-            onMouseLeave={e => (e.currentTarget.style.borderColor = C.border)}
-          >
-            + Driver
-          </button>
-        </div>
-      </div>
+    <div style={{ padding: '32px 36px', maxWidth: 1400, margin: '0 auto', fontFamily: body, color: C.text }}>
 
       {/* Stat cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 24 }}>
@@ -107,7 +63,7 @@ export default function AdminDashboard() {
           <div key={s.label} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: '20px' }}>
             <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.faint, marginBottom: 10 }}>{s.label}</div>
             {s.value === null
-              ? <Skeleton w={60} h={32} />
+              ? <Skeleton w={60} h={32} bg={C.surface3} />
               : <div style={{ fontFamily: heading, fontWeight: 700, fontSize: 32, letterSpacing: '-0.02em', color: s.color, lineHeight: 1, marginBottom: 6 }}>{s.value}</div>
             }
             <div style={{ fontSize: 12, color: C.faint }}>{s.sub}</div>
@@ -155,14 +111,14 @@ export default function AdminDashboard() {
           <div style={{ padding: '20px' }}>
             {loading ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {[1,2,3].map(i => <Skeleton key={i} h={18} />)}
+                {[1,2,3].map(i => <Skeleton key={i} h={18} bg={C.surface3} />)}
               </div>
             ) : vehicles.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '32px 0' }}>
                 <div style={{ fontSize: 14, color: C.muted, marginBottom: 14 }}>No vehicles yet</div>
                 <button
                   onClick={() => navigate('/app/admin/vehicles')}
-                  style={{ background: C.accent, color: '#071019', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: body }}
+                  style={{ background: C.accent, color: C.accentText, border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: body }}
                 >
                   Add first vehicle
                 </button>
@@ -204,7 +160,7 @@ export default function AdminDashboard() {
           </div>
           <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
             {loading ? (
-              [1,2,3,4].map(i => <Skeleton key={i} h={44} />)
+              [1,2,3,4].map(i => <Skeleton key={i} h={44} bg={C.surface3} />)
             ) : (
               <>
                 {[
@@ -246,7 +202,7 @@ export default function AdminDashboard() {
           </div>
           {loading ? (
             <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {[1,2,3].map(i => <Skeleton key={i} h={48} />)}
+              {[1,2,3].map(i => <Skeleton key={i} h={48} bg={C.surface3} />)}
             </div>
           ) : recentBookings.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '36px 0', fontSize: 14, color: C.muted }}>No bookings yet.</div>

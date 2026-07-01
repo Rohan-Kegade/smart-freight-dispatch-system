@@ -1,9 +1,9 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Plus, Search, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { fleetApi } from '@/api';
+import { fleetApi, bookingsApi } from '@/api';
 import { ApiError } from '@/api';
-import type { Vehicle } from '@/types';
+import type { Vehicle, Booking } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,12 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { PageHeader } from '@/components/shared/PageHeader';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Truck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { useTheme } from '@/context/ThemeContext';
+
+const body = "'IBM Plex Mono', monospace";
 
 const VEHICLE_TYPE_OPTIONS = [
   { id: '', name: 'Select type…' },
@@ -38,8 +40,10 @@ interface VehicleFormData {
 const emptyForm: VehicleFormData = { vehicle_number: '', type_id: '', capacity_kg: '', current_location: '', maintenance_status: 'active' };
 
 export default function VehiclesPage() {
+  const { colors: C } = useTheme();
   const { toast } = useToast();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -50,11 +54,22 @@ export default function VehiclesPage() {
   const [formError, setFormError] = useState('');
 
   useEffect(() => {
-    fleetApi.getVehicles()
-      .then(({ vehicles }) => setVehicles(vehicles))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    Promise.all([
+      fleetApi.getVehicles(),
+      bookingsApi.list().catch(() => ({ bookings: [] as Booking[] })),
+    ]).then(([{ vehicles }, { bookings }]) => {
+      setVehicles(vehicles);
+      setBookings(bookings);
+    }).finally(() => setLoading(false));
   }, []);
+
+  const assignedDriverByVehicle = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const b of bookings) {
+      if (b.status === 'confirmed' && !map[b.vehicle_id]) map[b.vehicle_id] = b.driver_name;
+    }
+    return map;
+  }, [bookings]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -106,32 +121,31 @@ export default function VehiclesPage() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-6xl mx-auto">
-      <PageHeader
-        title="Vehicles"
-        description="Manage your fleet vehicles, types, and availability."
-        actions={<Button onClick={openAdd}><Plus className="h-4 w-4" /> Add vehicle</Button>}
-      />
-
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-        <div className="flex items-center gap-1 bg-muted/60 rounded-lg p-1">
-          {(['all', 'active', 'maintenance', 'retired'] as const).map(v => (
-            <button
-              key={v}
-              onClick={() => setStatusFilter(v)}
-              className={cn(
-                'px-3 py-1.5 rounded-md text-sm font-medium transition-all capitalize',
-                statusFilter === v ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {v === 'all' ? 'All' : v === 'maintenance' ? 'Maintenance' : v.charAt(0).toUpperCase() + v.slice(1)}
-            </button>
-          ))}
+    <div className="p-6 space-y-6 mx-auto" style={{ maxWidth: 1400, fontFamily: body }}>
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center sm:justify-between">
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          <div className="flex items-center gap-1 bg-muted/60 rounded-lg p-1">
+            {(['all', 'active', 'maintenance', 'retired'] as const).map(v => (
+              <button
+                key={v}
+                onClick={() => setStatusFilter(v)}
+                className={cn(
+                  'px-3 py-1.5 rounded-md text-sm font-medium transition-all capitalize',
+                  statusFilter === v ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                {v === 'all' ? 'All' : v === 'maintenance' ? 'Maintenance' : v.charAt(0).toUpperCase() + v.slice(1)}
+              </button>
+            ))}
+          </div>
+          <div className="relative flex-1 sm:max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input placeholder="Search by number, type, location…" value={search} onChange={e => setSearch(e.target.value)} className="pl-8 h-9 text-sm" />
+          </div>
         </div>
-        <div className="relative flex-1 sm:max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          <Input placeholder="Search by number, type, location…" value={search} onChange={e => setSearch(e.target.value)} className="pl-8 h-9 text-sm" />
-        </div>
+        <Button onClick={openAdd} style={{ background: C.accent, color: C.accentText, fontWeight: 600 }}>
+          <Plus className="h-4 w-4" /> Add vehicle
+        </Button>
       </div>
 
       {loading ? (
@@ -142,12 +156,13 @@ export default function VehiclesPage() {
         <div className="rounded-xl border overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Vehicle</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Capacity</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Status</TableHead>
+              <TableRow className="bg-muted/30 hover:bg-muted/30">
+                <TableHead className="font-semibold text-foreground">Vehicle</TableHead>
+                <TableHead className="font-semibold text-foreground">Type</TableHead>
+                <TableHead className="font-semibold text-foreground">Capacity</TableHead>
+                <TableHead className="font-semibold text-foreground">Location</TableHead>
+                <TableHead className="font-semibold text-foreground">Assigned</TableHead>
+                <TableHead className="font-semibold text-foreground">Status</TableHead>
                 <TableHead className="w-16" />
               </TableRow>
             </TableHeader>
@@ -155,9 +170,10 @@ export default function VehiclesPage() {
               {filtered.map(v => (
                 <TableRow key={v.id}>
                   <TableCell className="font-medium">{v.vehicle_number}</TableCell>
-                  <TableCell className="text-sm">{v.type?.name ?? '—'}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{v.type?.name ?? '—'}</TableCell>
                   <TableCell className="text-sm">{Number(v.capacity_kg).toLocaleString()} kg</TableCell>
                   <TableCell className="text-sm">{v.current_location}</TableCell>
+                  <TableCell className="text-sm">{assignedDriverByVehicle[v.id] ?? '—'}</TableCell>
                   <TableCell><StatusBadge status={v.maintenance_status} /></TableCell>
                   <TableCell>
                     <Button variant="ghost" size="icon" onClick={() => openEdit(v)}><Pencil className="h-4 w-4" /></Button>

@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { PageHeader } from '@/components/shared/PageHeader';
 import { formatDate, formatWeight, capitalise } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 
@@ -55,11 +54,6 @@ export default function RequestFormPage() {
 
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-6">
-      <PageHeader
-        title="New dispatch request"
-        description="Describe the shipment in plain language — AI will extract all the details."
-      />
-
       {!parsed ? (
         <div className="space-y-4">
           <Card className="shadow-sm">

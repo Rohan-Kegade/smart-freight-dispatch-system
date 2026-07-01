@@ -86,10 +86,6 @@ export default function MatchResultsPage() {
         <Button variant="ghost" size="icon" onClick={() => navigate('/app/request/new')}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <div>
-          <h1 className="text-xl font-bold">Match results</h1>
-          <p className="text-sm text-muted-foreground">Ranked by score — best match first</p>
-        </div>
       </div>
 
       {/* Request summary card */}

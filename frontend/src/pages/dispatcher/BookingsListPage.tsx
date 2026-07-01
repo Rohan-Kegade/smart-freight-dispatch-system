@@ -7,10 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { PageHeader } from '@/components/shared/PageHeader';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { formatDate, formatCurrency, cn } from '@/lib/utils';
+import { useTheme } from '@/context/ThemeContext';
 
 const PAGE_SIZE = 15;
 
@@ -22,6 +22,7 @@ const STATUS_TABS = [
 ] as const;
 
 export default function BookingsListPage() {
+  const { colors: C } = useTheme();
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,48 +58,47 @@ export default function BookingsListPage() {
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <div className="p-6 space-y-5 max-w-6xl mx-auto">
-      <PageHeader
-        title="Bookings"
-        description="All dispatch bookings, past and active."
-        actions={<Button onClick={() => navigate('/app/request/new')}>+ New request</Button>}
-      />
-
+    <div className="p-6 space-y-6 mx-auto" style={{ maxWidth: 1400 }}>
       {/* Status tabs + search */}
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-        <div className="flex items-center gap-1 bg-muted/60 rounded-lg p-1">
-          {STATUS_TABS.map(tab => (
-            <button
-              key={tab.value}
-              onClick={() => { setStatusFilter(tab.value); setPage(1); }}
-              className={cn(
-                'px-3 py-1.5 rounded-md text-sm font-medium transition-all',
-                statusFilter === tab.value
-                  ? 'bg-background shadow-sm text-foreground'
-                  : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {tab.label}
-              {!loading && (
-                <span className={cn(
-                  'ml-1.5 text-xs tabular-nums',
-                  statusFilter === tab.value ? 'text-muted-foreground' : 'text-muted-foreground/50',
-                )}>
-                  {counts[tab.value]}
-                </span>
-              )}
-            </button>
-          ))}
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center sm:justify-between">
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          <div className="flex items-center gap-1 bg-muted/60 rounded-lg p-1">
+            {STATUS_TABS.map(tab => (
+              <button
+                key={tab.value}
+                onClick={() => { setStatusFilter(tab.value); setPage(1); }}
+                className={cn(
+                  'px-3 py-1.5 rounded-md text-sm font-medium transition-all',
+                  statusFilter === tab.value
+                    ? 'bg-background shadow-sm text-foreground'
+                    : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                {tab.label}
+                {!loading && (
+                  <span className={cn(
+                    'ml-1.5 text-xs tabular-nums',
+                    statusFilter === tab.value ? 'text-muted-foreground' : 'text-muted-foreground/50',
+                  )}>
+                    {counts[tab.value]}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+          <div className="relative flex-1 sm:max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Search route, vehicle, driver…"
+              value={search}
+              onChange={e => { setSearch(e.target.value); setPage(1); }}
+              className="pl-8 h-9 text-sm"
+            />
+          </div>
         </div>
-        <div className="relative flex-1 sm:max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          <Input
-            placeholder="Search route, vehicle, driver…"
-            value={search}
-            onChange={e => { setSearch(e.target.value); setPage(1); }}
-            className="pl-8 h-9 text-sm"
-          />
-        </div>
+        <Button onClick={() => navigate('/app/request/new')} style={{ background: C.accent, color: C.accentText, fontWeight: 600 }}>
+          + New request
+        </Button>
       </div>
 
       {loading ? (
@@ -116,12 +116,12 @@ export default function BookingsListPage() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30 hover:bg-muted/30">
-                  <TableHead className="font-semibold">Route</TableHead>
-                  <TableHead className="font-semibold">Vehicle</TableHead>
-                  <TableHead className="font-semibold">Driver</TableHead>
-                  <TableHead className="font-semibold">Start time</TableHead>
-                  <TableHead className="font-semibold">Cost</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="font-semibold text-foreground">Route</TableHead>
+                  <TableHead className="font-semibold text-foreground">Vehicle</TableHead>
+                  <TableHead className="font-semibold text-foreground">Driver</TableHead>
+                  <TableHead className="font-semibold text-foreground">Start time</TableHead>
+                  <TableHead className="font-semibold text-foreground">Cost</TableHead>
+                  <TableHead className="font-semibold text-foreground">Status</TableHead>
                   <TableHead className="w-10" />
                 </TableRow>
               </TableHeader>

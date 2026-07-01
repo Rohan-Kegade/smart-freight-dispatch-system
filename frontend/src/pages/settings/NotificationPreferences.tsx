@@ -5,7 +5,6 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { PageHeader } from '@/components/shared/PageHeader';
 import { useToast } from '@/hooks/use-toast';
 
 const PREFS = [
@@ -31,9 +30,7 @@ export default function NotificationPreferences() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-2xl">
-      <PageHeader title="Notification preferences" description="Choose which events you want to be notified about." />
-
+    <div className="p-6 space-y-6 max-w-2xl mx-auto">
       <Card>
         <CardHeader>
           <CardTitle>In-app notifications</CardTitle>

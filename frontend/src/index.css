@@ -40,6 +40,42 @@
     --sidebar-accent: 217 33% 17%;
     --sidebar-accent-foreground: 210 40% 98%;
   }
+
+  .dark {
+    --background: 220 26% 6%;
+    --foreground: 210 25% 92%;
+
+    --card: 222 22% 9%;
+    --card-foreground: 210 25% 92%;
+
+    --popover: 222 22% 9%;
+    --popover-foreground: 210 25% 92%;
+
+    --primary: 213 82% 65%;
+    --primary-foreground: 210 50% 6%;
+
+    --secondary: 220 20% 15%;
+    --secondary-foreground: 210 25% 92%;
+
+    --muted: 220 18% 15%;
+    --muted-foreground: 213 12% 60%;
+
+    --accent: 220 20% 16%;
+    --accent-foreground: 210 25% 92%;
+
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 18% 18%;
+    --input: 220 18% 18%;
+    --ring: 213 82% 65%;
+
+    --sidebar-background: 222 22% 9%;
+    --sidebar-foreground: 210 25% 92%;
+    --sidebar-border: 220 18% 18%;
+    --sidebar-accent: 220 20% 16%;
+    --sidebar-accent-foreground: 210 25% 92%;
+  }
 }
 
 @layer base {
@@ -48,7 +84,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'IBM Plex Mono', monospace;
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

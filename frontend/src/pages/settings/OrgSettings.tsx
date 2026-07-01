@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { PageHeader } from '@/components/shared/PageHeader';
 import { useToast } from '@/hooks/use-toast';
 
 const schema = z.object({
@@ -35,9 +34,7 @@ export default function OrgSettings() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-2xl">
-      <PageHeader title="Organisation settings" description="Configure your company profile and regional preferences." />
-
+    <div className="p-6 space-y-6 max-w-2xl mx-auto">
       <Card>
         <CardHeader><CardTitle>Company details</CardTitle><CardDescription>This appears on reports and notifications.</CardDescription></CardHeader>
         <CardContent>

@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { PageHeader } from '@/components/shared/PageHeader';
 import { Separator } from '@/components/ui/separator';
 
 const MOCK_TEAM = [
@@ -15,15 +14,11 @@ const MOCK_TEAM = [
 export default function TeamPage() {
   return (
     <div className="p-6 space-y-6 max-w-4xl mx-auto">
-      <PageHeader
-        title="Team"
-        description="Manage who has access to your Lodestar workspace."
-        actions={
-          <Button>
-            <UserPlus className="h-4 w-4" /> Invite member
-          </Button>
-        }
-      />
+      <div className="flex justify-end">
+        <Button>
+          <UserPlus className="h-4 w-4" /> Invite member
+        </Button>
+      </div>
 
       <div className="grid gap-4">
         <Card>

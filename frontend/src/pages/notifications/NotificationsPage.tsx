@@ -1,7 +1,6 @@
 import { BookOpen, Truck, AlertTriangle, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PageHeader } from '@/components/shared/PageHeader';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
@@ -39,11 +38,10 @@ export default function NotificationsPage() {
 
   return (
     <div className="p-6 space-y-6 max-w-2xl mx-auto">
-      <PageHeader
-        title="Notifications"
-        description={`${unread} unread notification${unread !== 1 ? 's' : ''}`}
-        actions={<Button variant="ghost" size="sm" className="text-muted-foreground">Mark all as read</Button>}
-      />
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">{unread} unread notification{unread !== 1 ? 's' : ''}</p>
+        <Button variant="ghost" size="sm" className="text-muted-foreground">Mark all as read</Button>
+      </div>
 
       <Card>
         <CardHeader className="pb-2">

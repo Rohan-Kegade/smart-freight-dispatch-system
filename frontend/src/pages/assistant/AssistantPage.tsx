@@ -91,8 +91,8 @@ export default function AssistantPage() {
                 onClick={() => send(s.q)}
                 className="text-left rounded-xl border bg-background hover:border-primary/50 hover:bg-primary/5 px-4 py-3 transition-all group"
               >
-                <p className="text-sm font-medium group-hover:text-primary transition-colors">{s.label}</p>
-                <p className="text-xs text-muted-foreground mt-0.5 leading-snug line-clamp-2">{s.q}</p>
+                <p className="text-sm font-medium text-black group-hover:text-primary transition-colors">{s.label}</p>
+                <p className="text-xs text-black/60 mt-0.5 leading-snug line-clamp-2">{s.q}</p>
               </button>
             ))}
           </div>
@@ -117,7 +117,7 @@ export default function AssistantPage() {
       )}
 
       {/* Input area — always at bottom */}
-      <div className="border-t bg-background px-6 py-4 max-w-3xl mx-auto w-full">
+      <div className="border-t bg-background px-6 py-4 mb-6 max-w-3xl mx-auto w-full">
         <div className="flex gap-2 items-end">
           <Textarea
             value={input}

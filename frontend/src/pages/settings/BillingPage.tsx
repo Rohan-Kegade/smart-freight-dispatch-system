@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { PageHeader } from '@/components/shared/PageHeader';
 
 const PLAN_FEATURES = [
   'Up to 25 vehicles',
@@ -23,11 +22,9 @@ const INVOICES = [
 
 export default function BillingPage() {
   return (
-    <div className="p-6 space-y-6 max-w-2xl">
-      <PageHeader title="Billing & subscription" description="Manage your plan, payment method, and invoices." />
-
+    <div className="p-6 space-y-6 max-w-2xl mx-auto">
       {/* Current plan */}
-      <Card className="border-primary/30 bg-primary/5">
+      <Card className="border-primary/30">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div>
             <CardTitle className="text-base">Starter plan</CardTitle>

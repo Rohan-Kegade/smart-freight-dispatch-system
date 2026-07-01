@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { FileText, Upload, Trash2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { PageHeader } from '@/components/shared/PageHeader';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
@@ -17,11 +16,9 @@ export default function DocumentsPage() {
 
   return (
     <div className="p-6 space-y-6 max-w-4xl mx-auto">
-      <PageHeader
-        title="Knowledge Base"
-        description="Upload policy documents for the AI assistant to reference."
-        actions={<Button disabled><Upload className="h-4 w-4" /> Upload document</Button>}
-      />
+      <div className="flex justify-end">
+        <Button disabled><Upload className="h-4 w-4" /> Upload document</Button>
+      </div>
 
       <div className="flex items-start gap-2 rounded-md bg-blue-50 border border-blue-200 px-3 py-2.5 text-sm text-blue-800">
         <Info className="h-4 w-4 shrink-0 mt-0.5" />
